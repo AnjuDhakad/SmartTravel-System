@@ -1,0 +1,47 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | SmartTravel</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body class="auth-page">
+
+<div class="auth-card">
+    <a href="{% url 'home' %}" class="logo">SmartTravel<span>.</span></a>
+
+    <h1>Welcome Back!</h1>
+    <p class="auth-subtitle">Login to continue your journey.</p>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="message {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <label>Username</label>
+        <input type="text" name="username"
+               placeholder="Enter your username" required>
+
+        <label>Password</label>
+        <input type="password" name="password"
+               placeholder="Enter your password" required>
+
+        <button type="submit" class="btn primary-btn full-btn">
+            Login
+        </button>
+    </form>
+
+    <p class="auth-footer">
+        Don't have an account?
+        <a href="{% url 'signup' %}">Create Account</a>
+    </p>
+</div>
+
+</body>
+</html>

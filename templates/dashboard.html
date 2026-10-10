@@ -1,0 +1,333 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Dashboard | SmartTravel</title>
+
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f5f6ff;
+            color: #252344;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 7%;
+            background: #ffffff;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.06);
+        }
+
+        .logo {
+            text-decoration: none;
+            font-size: 27px;
+            font-weight: 800;
+            color: #252344;
+        }
+
+        .logo span {
+            color: #7865f5;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #45445c;
+            font-size: 15px;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #7865f5;
+        }
+
+        .nav-links .nav-btn {
+            background: #7865f5;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+        }
+
+        .nav-links .nav-btn:hover {
+            background: #5d4bd8;
+            color: white;
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 55px auto;
+            padding: 0 25px;
+        }
+
+        .tagline {
+            display: inline-block;
+            color: #7865f5;
+            background: #e9e5ff;
+            padding: 9px 15px;
+            border-radius: 25px;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .dashboard-container h1 {
+            margin-top: 22px;
+            font-size: 36px;
+            color: #252344;
+        }
+
+        .welcome-text {
+            margin-top: 12px;
+            color: #77768c;
+            font-size: 17px;
+            line-height: 1.6;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 25px;
+            margin-top: 40px;
+        }
+
+        .feature-card {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 18px;
+            border: 1px solid #eeecfa;
+            box-shadow: 0 8px 25px rgba(48, 37, 110, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(48, 37, 110, 0.10);
+        }
+
+        .feature-icon {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 60px;
+            height: 60px;
+            background: #eeebff;
+            border-radius: 15px;
+            font-size: 30px;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 22px;
+            margin-bottom: 12px;
+            color: #252344;
+        }
+
+        .feature-card p {
+            color: #77768c;
+            font-size: 15px;
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+
+        .feature-btn {
+            display: inline-block;
+            padding: 12px 22px;
+            background: #7865f5;
+            color: white;
+            text-decoration: none;
+            border-radius: 9px;
+            font-size: 14px;
+            font-weight: 700;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .feature-btn:hover {
+            background: #5d4bd8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(120, 101, 245, 0.25);
+        }
+
+        .dashboard-footer {
+            text-align: center;
+            padding: 25px;
+            margin-top: 35px;
+            color: #89889d;
+            font-size: 13px;
+        }
+
+        @media (max-width: 650px) {
+            .navbar {
+                padding: 18px 5%;
+                flex-direction: column;
+                gap: 18px;
+            }
+
+            .nav-links {
+                gap: 15px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .dashboard-container {
+                margin-top: 35px;
+                padding: 0 18px;
+            }
+
+            .dashboard-container h1 {
+                font-size: 27px;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .feature-card {
+                padding: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+
+        <a href="{% url 'home' %}" class="logo">
+            SmartTravel<span>.</span>
+        </a>
+
+        <div class="nav-links">
+            <a href="{% url 'dashboard' %}">Dashboard</a>
+            <a href="{% url 'profile' %}">My Profile</a>
+            <a href="{% url 'logout' %}" class="nav-btn">Logout</a>
+        </div>
+
+    </nav>
+
+    <!-- Dashboard Content -->
+    <main class="dashboard-container">
+
+        <span class="tagline">YOUR PERSONAL TRAVEL SPACE</span>
+
+        <h1>
+            Welcome, {{ request.user.first_name|default:request.user.username }}! 👋
+        </h1>
+
+        <p class="welcome-text">
+            Where would you like to go next?
+            Plan your journey with SmartTravel.
+        </p>
+
+        <!-- Feature Cards -->
+        <div class="dashboard-grid">
+
+            <!-- Search Routes -->
+            <div class="feature-card">
+
+                <div class="feature-icon">🗺️</div>
+
+                <h3>Search Routes</h3>
+
+                <p>
+                    Enter your source and destination to explore
+                    transport options for your journey.
+                </p>
+
+                <a href="{% url 'travel:travel_search' %}"
+                   class="feature-btn">
+                    Search Route →
+                </a>
+
+            </div>
+
+            <!-- AI Recommendations -->
+            <div class="feature-card">
+
+                <div class="feature-icon">🤖</div>
+
+                <h3>AI Recommendations</h3>
+
+                <p>
+                    Discover travel destinations and explore
+                    suggestions for your next trip.
+                </p>
+
+                <a href="/recommendations/"
+                   class="feature-btn">
+                    Explore Recommendations →
+                </a>
+
+            </div>
+
+            <!-- My Bookings -->
+            <div class="feature-card">
+
+                <div class="feature-icon">🎫</div>
+
+                <h3>My Bookings</h3>
+
+                <p>
+                    View your travel booking information
+                    and manage your journey details.
+                </p>
+
+                <a href="/bookings/"
+                   class="feature-btn">
+                    View My Bookings →
+                </a>
+
+            </div>
+
+            <!-- Travel Assistant -->
+            <div class="feature-card">
+
+                <div class="feature-icon">💬</div>
+
+                <h3>Travel Assistant</h3>
+
+                <p>
+                    Get assistance with travel planning,
+                    destinations and journey-related questions.
+                </p>
+
+                <a href="/assistant/"
+                   class="feature-btn">
+                    Open Assistant →
+                </a>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="dashboard-footer">
+        © 2026 SmartTravel | Your Journey, Made Smarter ✈️
+    </footer>
+
+</body>
+</html>

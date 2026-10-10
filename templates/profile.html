@@ -1,0 +1,43 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | SmartTravel</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body class="auth-page">
+
+<div class="auth-card">
+    <a href="{% url 'dashboard' %}" class="logo">SmartTravel<span>.</span></a>
+
+    <h1>My Profile</h1>
+    <p class="auth-subtitle">Your account information</p>
+
+    <div class="profile-avatar">
+        {{ request.user.first_name|default:request.user.username|slice:":1"|upper }}
+    </div>
+
+    <div class="profile-detail">
+        <span>Full Name</span>
+        <strong>{{ request.user.first_name|default:"Not provided" }}</strong>
+    </div>
+
+    <div class="profile-detail">
+        <span>Username</span>
+        <strong>{{ request.user.username }}</strong>
+    </div>
+
+    <div class="profile-detail">
+        <span>Email</span>
+        <strong>{{ request.user.email|default:"Not provided" }}</strong>
+    </div>
+
+    <a href="{% url 'dashboard' %}" class="btn primary-btn full-btn">
+        Back to Dashboard
+    </a>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,123 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartTravel | Explore the World</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body>
+
+<nav class="navbar">
+    <a href="{% url 'home' %}" class="logo">SmartTravel<span>.</span></a>
+
+    <div class="nav-links">
+        <a href="{% url 'home' %}">Home</a>
+        <a href="#about">About</a>
+        <a href="#features">Features</a>
+        <a href="{% url 'login' %}">Login</a>
+        <a href="{% url 'signup' %}" class="nav-btn">Get Started</a>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="hero-content">
+        <span class="tagline">YOUR JOURNEY, OUR INTELLIGENCE</span>
+
+        <h1>Explore More.<br><span>Travel Smarter.</span></h1>
+
+        <p>
+            Discover destinations, compare travel options and plan
+            your next adventure with SmartTravel.
+        </p>
+
+        <div class="hero-buttons">
+            <a href="{% url 'signup' %}" class="btn primary-btn">
+                Start Your Journey
+            </a>
+
+            <a href="#features" class="btn secondary-btn">
+                Explore Features
+            </a>
+        </div>
+
+        <div class="travel-stats">
+            <div><strong>4+</strong><span>Travel Options</span></div>
+            <div><strong>AI</strong><span>Smart Suggestions</span></div>
+            <div><strong>1</strong><span>Travel Platform</span></div>
+        </div>
+    </div>
+
+    <div class="hero-visual">
+        <div class="travel-card">
+            <div class="travel-icon">✈️</div>
+            <span class="tagline">YOUR NEXT ADVENTURE</span>
+            <h2>The World Awaits You</h2>
+            <p>Bus · Train · Flight · Cab</p>
+            <div class="destination-line">
+                <span>📍 Your City</span>
+                <span>🌍 New Destination</span>
+            </div>
+        </div>
+        <div class="floating-icon">🌎</div>
+        <div class="floating-icon second-icon">🧳</div>
+    </div>
+</section>
+
+<section class="features section" id="features">
+    <div class="section-heading">
+        <span class="tagline">WHAT WE OFFER</span>
+        <h2>Everything You Need to Travel</h2>
+        <p>Plan your journey with useful travel tools in one place.</p>
+    </div>
+
+    <div class="feature-grid">
+        <div class="feature-card">
+            <div class="feature-icon">🚌</div>
+            <h3>Transport Options</h3>
+            <p>Explore bus, train, flight and cab travel options.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">🤖</div>
+            <h3>AI Recommendations</h3>
+            <p>Discover suggestions based on your travel preferences.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">🗺️</div>
+            <h3>Explore Destinations</h3>
+            <p>Find interesting destinations for your next trip.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">💬</div>
+            <h3>Travel Assistant</h3>
+            <p>Get help planning your journey with a travel assistant.</p>
+        </div>
+    </div>
+</section>
+
+<section class="about section" id="about">
+    <div>
+        <span class="tagline">ABOUT SMARTTRAVEL</span>
+        <h2>Travel Planning Made Simpler</h2>
+    </div>
+
+    <p>
+        SmartTravel is a travel-planning project designed to help users
+        explore destinations, compare transport options and receive
+        personalised travel recommendations.
+    </p>
+</section>
+
+<footer class="footer">
+    <a href="{% url 'home' %}" class="logo">SmartTravel<span>.</span></a>
+    <p>Making every journey smarter.</p>
+    <p>© 2026 SmartTravel. All rights reserved.</p>
+</footer>
+
+<script src="{% static 'script.js' %}"></script>
+</body>
+</html>
