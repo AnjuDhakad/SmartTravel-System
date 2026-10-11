@@ -1,0 +1,7 @@
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+travel/views_backup.py
+templates/travel_search_backup.html

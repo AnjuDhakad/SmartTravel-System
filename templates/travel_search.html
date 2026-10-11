@@ -1,352 +1,1222 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Travel | Route Search</title>
 
-    <title>Smart Travel | Search Routes</title>
+    <link href="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.css" rel="stylesheet">
 
     <style>
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --primary: #5266d8;
+            --primary-dark: #3e50bb;
+            --secondary: #7866d5;
+            --text: #222b45;
+            --muted: #707995;
+            --border: #e5e8f2;
+            --surface: #ffffff;
+            --background: #f5f6fc;
+            --success: #16856b;
+            --shadow: 0 12px 35px rgba(42, 53, 100, 0.08);
         }
 
         body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f5f3ff;
-            color: #272343;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            min-height: 100vh;
         }
 
-        .travel-container {
-            max-width: 1000px;
-            margin: 50px auto;
-            padding: 25px;
+        button,
+        input,
+        select {
+            font: inherit;
         }
 
-        .travel-heading {
-            text-align: center;
-            margin-bottom: 30px;
+        button,
+        a {
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .travel-heading h1 {
-            color: #6844db;
-            font-size: 34px;
+        a {
+            text-decoration: none;
+            color: inherit;
         }
 
-        .travel-heading p {
-            color: #666;
+        .navbar {
+            height: 76px;
+            padding: 0 6%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 21px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-icon {
+            width: 39px;
+            height: 39px;
+            display: grid;
+            place-items: center;
+            border-radius: 12px;
+            color: #fff;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+
+        .brand span:last-child {
+            color: var(--primary);
+        }
+
+        .nav-link {
+            color: #626b86;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .page-container {
+            width: min(1240px, 92%);
+            margin: 35px auto 55px;
+        }
+
+        .page-heading {
+            margin-bottom: 25px;
+        }
+
+        .eyebrow {
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 1.7px;
+            text-transform: uppercase;
+            margin-bottom: 9px;
+        }
+
+        .page-heading h1 {
+            font-size: clamp(27px, 3vw, 36px);
+            letter-spacing: -1px;
+            margin-bottom: 9px;
+        }
+
+        .page-heading p {
+            color: var(--muted);
+            font-size: 15px;
             line-height: 1.6;
         }
 
-        .travel-form {
-            position: relative;
-            background: white;
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.08);
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        /* Search form */
+        .search-layout {
+            display: grid;
+            grid-template-columns: 1fr 0.85fr;
+            gap: 25px;
+            align-items: stretch;
+        }
+
+        .search-panel {
+            padding: 29px;
+        }
+
+        .panel-heading {
+            margin-bottom: 24px;
+        }
+
+        .panel-heading h2 {
+            font-size: 21px;
+            margin-bottom: 7px;
+        }
+
+        .panel-heading p {
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.5;
         }
 
         .form-grid {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 20px;
+            grid-template-columns: 1fr 1fr;
+            gap: 19px 16px;
         }
 
-        .form-group label {
+        .field {
+            min-width: 0;
+        }
+
+        .field.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .field label {
             display: block;
             margin-bottom: 8px;
-            font-weight: 600;
+            font-size: 13px;
+            font-weight: 700;
+            color: #454e6b;
         }
 
-        .form-group input,
-        .form-group select {
-            display: block;
+        .field input,
+        .field select {
             width: 100%;
-            min-height: 45px;
-            padding: 12px;
-            border: 1px solid #d8d2eb;
-            border-radius: 8px;
-            background: white;
-            font-size: 15px;
+            height: 48px;
+            padding: 0 13px;
+            color: var(--text);
+            background: #fbfcff;
+            border: 1px solid #dfe3ef;
+            border-radius: 11px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
 
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: 2px solid #b9a8ff;
-            border-color: #6844db;
+        .field input:focus,
+        .field select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(82, 102, 216, 0.12);
         }
 
-        .search-button {
-            display: block;
-            position: relative;
-            width: 100%;
-            min-height: 48px;
-            margin-top: 25px;
-            padding: 14px;
+        .primary-button {
             border: none;
-            border-radius: 8px;
-            background: #6844db;
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #fff;
+            font-weight: 700;
+            border-radius: 11px;
+            min-height: 48px;
+            padding: 12px 19px;
             cursor: pointer;
-            pointer-events: auto;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
-        .search-button:hover {
-            background: #5030b8;
+        .primary-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 7px 18px rgba(82, 102, 216, 0.2);
         }
 
-        .search-button:focus-visible {
-            outline: 3px solid #b9a8ff;
-            outline-offset: 3px;
-        }
-
-        .results-heading {
-            margin-top: 35px;
-        }
-
-        .results-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .result-card {
-            padding: 22px;
-            border-radius: 12px;
-            background: white;
-            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
-        }
-
-        .result-icon {
-            font-size: 35px;
-            margin-bottom: 10px;
-        }
-
-        .result-card h3 {
-            color: #6844db;
-            margin-bottom: 8px;
-        }
-
-        .result-card p {
-            line-height: 1.6;
-            color: #666;
-        }
-
-        .notice {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f0edff;
-            border-radius: 8px;
-            line-height: 1.6;
+        .search-submit {
+            width: 100%;
+            margin-top: 23px;
         }
 
         .error-message {
-            margin-top: 20px;
+            padding: 13px 15px;
+            margin-bottom: 19px;
+            color: #a92e42;
+            background: #fff0f2;
+            border: 1px solid #ffd8de;
+            border-radius: 10px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .search-side {
+            min-height: 100%;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            background: linear-gradient(145deg, #e9edff, #f6f2ff 70%, #fff);
+            position: relative;
+        }
+
+        .search-side h2 {
+            max-width: 340px;
+            font-size: 28px;
+            line-height: 1.25;
+            margin-bottom: 13px;
+        }
+
+        .search-side>div>p {
+            max-width: 370px;
+            font-size: 14px;
+            color: #69728f;
+            line-height: 1.7;
+        }
+
+        .feature-list {
+            display: grid;
+            gap: 14px;
+            margin-top: 30px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px;
+            border: 1px solid rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.72);
+            border-radius: 13px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .feature-icon {
+            flex-shrink: 0;
+            width: 37px;
+            height: 37px;
+            display: grid;
+            place-items: center;
+            background: #e5e9ff;
+            border-radius: 10px;
+            font-size: 18px;
+        }
+
+        .side-note {
+            margin-top: 30px;
+            color: #7a81a0;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        /* Results layout */
+        .results-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 22px;
+            align-items: stretch;
+        }
+
+        .result-panel,
+        .map-panel {
+            min-width: 0;
+            height: 100%;
+            min-height: 470px;
+            overflow: hidden;
+        }
+
+        .result-panel {
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .result-topline {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .result-topline h2,
+        .map-heading h2 {
+            font-size: 20px;
+        }
+
+        .result-badge {
+            background: #e9f8f1;
+            color: var(--success);
+            font-size: 11px;
+            font-weight: 800;
+            padding: 7px 10px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        .route-endpoints {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 32px minmax(0, 1fr);
+            align-items: center;
+            gap: 10px;
+            padding: 19px;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #f0f2ff, #f8f5ff);
+            border: 1px solid #e8eaff;
+            margin-bottom: 22px;
+        }
+
+        .endpoint {
+            min-width: 0;
+        }
+
+        .endpoint-label {
+            color: #7a83a1;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 10px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .endpoint-name {
+            font-size: clamp(15px, 1.5vw, 19px);
+            font-weight: 800;
+            line-height: 1.4;
+            overflow-wrap: anywhere;
+        }
+
+        .endpoint-dot {
+            width: 32px;
+            height: 32px;
+            display: grid;
+            place-items: center;
+            background: #fff;
+            color: var(--primary);
+            border-radius: 50%;
+            font-size: 17px;
+            box-shadow: 0 3px 10px rgba(49, 58, 120, 0.09);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 13px;
+        }
+
+        .stat-card {
+            min-width: 0;
+            padding: 16px;
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            background: #fff;
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            overflow-wrap: anywhere;
+        }
+
+        .stat-unit {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .recommendation-box {
+            margin-top: 17px;
             padding: 15px;
-            color: #a61b1b;
-            background: #fff0f0;
+            background: #f0faf7;
+            border: 1px solid #d9f0e9;
+            border-radius: 13px;
+        }
+
+        .recommendation-box h3 {
+            font-size: 13px;
+            margin-bottom: 6px;
+            color: #18785f;
+        }
+
+        .recommendation-box p {
+            color: #536d68;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .trip-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 9px;
+            margin-top: 16px;
+        }
+
+        .meta-chip {
+            padding: 8px 10px;
+            background: #f5f6fb;
             border-radius: 8px;
+            color: #626b86;
+            font-size: 11px;
         }
 
-        .footer {
+        .fare-note {
+            margin-top: 13px;
+            color: #858ba0;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        /* Map box */
+        .map-panel {
+            padding: 21px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .map-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .map-heading p {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 6px;
+            line-height: 1.5;
+        }
+
+        .edit-route-button {
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            padding: 10px 13px;
+            color: var(--primary);
+            background: #eef0ff;
+            border: 1px solid #dce1ff;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .edit-route-button:hover {
+            background: #e1e5ff;
+            transform: translateY(-1px);
+        }
+
+        #route-map {
+            width: 100%;
+            flex: 1;
+            min-height: 350px;
+            border-radius: 14px;
+            overflow: hidden;
+            background: #e9edf5;
+        }
+
+        /* Buttons in one common box */
+        .route-actions-panel {
+            grid-column: 1 / -1;
+            padding: 20px 22px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 17px;
+        }
+
+        .actions-copy h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .actions-copy p {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .action-button {
+            min-height: 43px;
+            padding: 11px 16px;
+            border: 1px solid #dfe3f1;
+            background: #fff;
+            color: #485372;
+            border-radius: 10px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 7px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-button:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: #f6f7ff;
+            transform: translateY(-1px);
+        }
+
+        .action-button.primary-action {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        .action-button.primary-action:hover {
+            background: var(--primary-dark);
+        }
+
+        .action-button:focus-visible,
+        .edit-route-button:focus-visible {
+            outline: 3px solid rgba(82, 102, 216, 0.25);
+            outline-offset: 3px;
+        }
+
+        .page-footer {
             text-align: center;
-            padding: 20px;
-            color: #777;
+            color: #9399ad;
+            font-size: 12px;
+            margin-top: 28px;
         }
 
-        @media (max-width: 600px) {
-            .form-grid,
-            .results-grid {
+        [hidden] {
+            display: none !important;
+        }
+
+        @media (max-width: 950px) {
+            .search-layout {
                 grid-template-columns: 1fr;
             }
 
-            .travel-container {
-                padding: 15px;
-                margin: 25px auto;
+            .search-side {
+                min-height: 300px;
             }
 
-            .travel-form {
-                padding: 20px;
+            .results-layout {
+                grid-template-columns: 1fr;
             }
 
-            .travel-heading h1 {
-                font-size: 27px;
+            .result-panel,
+            .map-panel {
+                min-height: 0;
+            }
+
+            .result-panel {
+                min-height: 420px;
+            }
+
+            .map-panel {
+                min-height: 470px;
+            }
+
+            .route-actions-panel {
+                grid-column: auto;
             }
         }
+
+        @media (max-width: 600px) {
+            .navbar {
+                height: 66px;
+                padding: 0 5%;
+            }
+
+            .brand {
+                font-size: 18px;
+            }
+
+            .page-container {
+                width: 92%;
+                margin-top: 25px;
+            }
+
+            .search-panel,
+            .search-side {
+                padding: 21px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .field.full-width {
+                grid-column: auto;
+            }
+
+            .result-panel,
+            .map-panel {
+                padding: 17px;
+            }
+
+            .result-topline h2,
+            .map-heading h2 {
+                font-size: 18px;
+            }
+
+            .route-endpoints {
+                padding: 14px;
+                gap: 7px;
+                grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr);
+            }
+
+            .endpoint-dot {
+                width: 28px;
+                height: 28px;
+            }
+
+            .endpoint-name {
+                font-size: 15px;
+            }
+
+            .stat-card {
+                padding: 13px;
+            }
+
+            .stat-value {
+                font-size: 20px;
+            }
+
+            .map-panel {
+                min-height: 440px;
+            }
+
+            #route-map {
+                min-height: 340px;
+            }
+
+            .map-heading {
+                flex-wrap: wrap;
+            }
+
+            .route-actions-panel {
+                padding: 18px;
+                align-items: stretch;
+            }
+
+            .action-buttons {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                width: 100%;
+            }
+
+            .action-button {
+                padding: 11px 8px;
+                font-size: 11px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .route-endpoints {
+                grid-template-columns: 1fr;
+            }
+
+            .endpoint-dot {
+                transform: rotate(90deg);
+            }
+
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .save-trip-form {
+    display: inline-flex;
+    margin: 0;
+}
+
+.save-trip-form .action-button {
+    height: 100%;
+}
     </style>
 </head>
 
 <body>
+    <header class="navbar">
+        <a class="brand" href="/">
+            <span class="brand-icon">✦</span>
+            <span>Smart<span>Travel</span></span>
+        </a>
+        <a class="nav-link" href="/">← Back to Home</a>
+    </header>
 
-<div class="travel-container">
-
-    <div class="travel-heading">
-        <h1>✈️ Smart Travel Planner</h1>
-        <p>Find the right transport option for your next journey.</p>
-    </div>
-
-    <form
-        method="post"
-        action="{% url 'travel:travel_search' %}"
-        class="travel-form"
-    >
-        {% csrf_token %}
-
-        <div class="form-grid">
-
-            <div class="form-group">
-                <label for="source">From City</label>
-
-                <input
-                    type="text"
-                    id="source"
-                    name="source"
-                    placeholder="e.g. Bhopal"
-                    value="{{ source|default:'' }}"
-                    maxlength="100"
-                    required
-                >
-            </div>
-
-            <div class="form-group">
-                <label for="destination">To City</label>
-
-                <input
-                    type="text"
-                    id="destination"
-                    name="destination"
-                    placeholder="e.g. Indore"
-                    value="{{ destination|default:'' }}"
-                    maxlength="100"
-                    required
-                >
-            </div>
-
-            <div class="form-group">
-                <label for="travel_date">Travel Date</label>
-
-                <input
-                    type="date"
-                    id="travel_date"
-                    name="travel_date"
-                    value="{{ travel_date|default:'' }}"
-                    required
-                >
-            </div>
-
-            <div class="form-group">
-                <label for="transport">Transport Type</label>
-
-                <select id="transport" name="transport">
-
-                    <option
-                        value="all"
-                        {% if selected_transport == "all" or not selected_transport %}selected{% endif %}
-                    >
-                        All Transport
-                    </option>
-
-                    <option
-                        value="bus"
-                        {% if selected_transport == "bus" %}selected{% endif %}
-                    >
-                        Bus
-                    </option>
-
-                    <option
-                        value="train"
-                        {% if selected_transport == "train" %}selected{% endif %}
-                    >
-                        Train
-                    </option>
-
-                    <option
-                        value="flight"
-                        {% if selected_transport == "flight" %}selected{% endif %}
-                    >
-                        Flight
-                    </option>
-
-                    <option
-                        value="cab"
-                        {% if selected_transport == "cab" %}selected{% endif %}
-                    >
-                        Cab
-                    </option>
-
-                </select>
-            </div>
-
+    <main class="page-container">
+        <div class="page-heading">
+            <div class="eyebrow">Your journey, simplified</div>
+            <h1>Find your perfect route</h1>
+            <p>Discover your route, check estimated travel time and explore your journey on the map.</p>
         </div>
 
-        <button type="submit" class="search-button">
-            Search Travel Options
-        </button>
+        {% if error %}
+        <div class="error-message" role="alert">{{ error }}</div>
+        {% endif %}
 
-    </form>
-
-    {% if error_message %}
-        <div class="error-message" role="alert">
-            {{ error_message }}
-        </div>
-    {% endif %}
-
-    {% if searched and results %}
-
-        <h2 class="results-heading">
-            Available Transport Categories
-        </h2>
-
-        <div class="results-grid">
-
-            {% for item in results %}
-
-                <div class="result-card">
-
-                    <div class="result-icon">
-                        {{ item.icon }}
+        <!-- Search form: shown before a route is calculated, or when Edit Route is clicked -->
+        <section id="search-section" {% if route_data %}hidden{% endif %}>
+            <div class="search-layout">
+                <div class="panel search-panel">
+                    <div class="panel-heading">
+                        <h2>Plan your journey</h2>
+                        <p>Enter your travel details to discover a suitable route.</p>
                     </div>
 
-                    <h3>{{ item.name }}</h3>
+                    <form method="POST" action="{% url 'travel:travel_search' %}">
+                        {% csrf_token %}
 
-                    <p>{{ item.description }}</p>
+                        <div class="form-grid">
+                            <div class="field full-width">
+                                <label for="source">Starting location</label>
+                                <input type="text" id="source" name="source" placeholder="e.g. VIP Road, Bhopal"
+                                    value="{{ form_data.source }}" required>
+                            </div>
 
-                    <p>
-                        Transport option for
-                        {{ source }} to {{ destination }}.
-                    </p>
+                            <div class="field full-width">
+                                <label for="destination">Destination</label>
+                                <input type="text" id="destination" name="destination"
+                                    placeholder="e.g. DB Mall, Bhopal" value="{{ form_data.destination }}" required>
+                            </div>
 
+                            <div class="field">
+                                <label for="date">Travel date</label>
+                                <input type="date" id="date" name="date" value="{{ form_data.date }}">
+                            </div>
+
+                            <div class="field">
+                                <label for="time">Departure time</label>
+                                <input type="time" id="time" name="time" value="{{ form_data.time }}">
+                            </div>
+
+                            <div class="field">
+                                <label for="passengers">Passengers</label>
+                                <input type="number" id="passengers" name="passengers" min="1" max="50"
+                                    value="{{ form_data.passengers|default:'1' }}" required>
+                            </div>
+
+                            <div class="field">
+                                <label for="transport">Transport preference</label>
+                                <select id="transport" name="transport" required>
+                                    <option value="car" {% if form_data.transport == "car" %}selected{% endif %}>
+                                        Car / Cab
+                                    </option>
+                                    <option value="two_wheeler" {% if form_data.transport == "two_wheeler" %}selected{% endif %}>
+                                        Two-wheeler
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button class="primary-button search-submit" type="submit">
+                            Search Route <span aria-hidden="true">→</span>
+                        </button>
+                    </form>
                 </div>
 
-            {% endfor %}
+                <aside class="panel search-side">
+                    <div>
+                        <h2>Your next journey starts here.</h2>
+                        <p>Get route distance, estimated travel time and a map view based on your selected locations and
+                            transport preference.</p>
 
+                        <div class="feature-list">
+                            <div class="feature-item">
+                                <span class="feature-icon">📍</span>
+                                <span>Explore your route on an interactive map</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">⏱️</span>
+                                <span>Check estimated travel duration</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">🚗</span>
+                                <span>Choose your preferred transport</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="side-note">Tip: Use specific locations or landmarks for better route results.</p>
+                </aside>
+            </div>
+        </section>
+
+        {% if route_data %}
+        <section id="results-section">
+            <div class="results-layout">
+
+                <!-- Route results box -->
+                <article class="panel result-panel">
+                    <div class="result-topline">
+                        <h2>Route Results</h2>
+                        <span class="result-badge">✓ Route found</span>
+                    </div>
+
+                    <div class="route-endpoints">
+                        <div class="endpoint">
+                            <div class="endpoint-label">From</div>
+                            <div class="endpoint-name">{{ route_data.source }}</div>
+                        </div>
+
+                        <div class="endpoint-dot" aria-hidden="true">→</div>
+
+                        <div class="endpoint">
+                            <div class="endpoint-label">To</div>
+                            <div class="endpoint-name">{{ route_data.destination }}</div>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Total distance</div>
+                            <div class="stat-value">
+                                {{ route_data.distance_km }}
+                                <span class="stat-unit">km</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-label">Estimated duration</div>
+                            <div class="stat-value">{{ route_data.duration }}</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-label">Passengers</div>
+                            <div class="stat-value">{{ route_data.passengers }}</div>
+                        </div>
+
+                        {% if route_data.show_vehicle_count %}
+                        <div class="stat-card">
+                            <div class="stat-label">Vehicles required</div>
+                            <div class="stat-value">{{ route_data.vehicles_required }}</div>
+                        </div>
+                        {% endif %}
+
+                        <div class="stat-card">
+                            <div class="stat-label">Transport</div>
+                            <div class="stat-value" style="font-size: 17px;">
+                                {{ route_data.transport_label }}
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-label">Estimated total cost</div>
+                            <div class="stat-value">
+                                ₹{{ route_data.estimated_total_fare }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="recommendation-box">
+                        <h3>Travel recommendation</h3>
+                        <p>{{ route_data.recommendation_reason }}</p>
+                    </div>
+
+                    <div class="trip-meta">
+                        {% if route_data.date %}
+                        <span class="meta-chip">📅 {{ route_data.date }}</span>
+                        {% endif %}
+                        {% if route_data.time %}
+                        <span class="meta-chip">🕒 {{ route_data.time }}</span>
+                        {% endif %}
+                    </div>
+
+                    <p class="fare-note">
+                        Cost is an illustrative project estimate, not a live cab or transport-provider quote.
+                        Actual fares may vary.
+                    </p>
+                </article>
+
+                <!-- Map box with Edit Route above it -->
+                <article class="panel map-panel">
+                    <div class="map-heading">
+                        <div>
+                            <h2>Route Map</h2>
+                            <p>Explore the route between your selected locations.</p>
+                        </div>
+
+                        <button type="button" class="edit-route-button" id="edit-route-button">
+                            ✎ Edit Route
+                        </button>
+                    </div>
+
+                    <div id="route-map" aria-label="Interactive route map"></div>
+                </article>
+
+                <!-- All four action buttons in one separate box -->
+                <div class="panel route-actions-panel">
+                    <div class="actions-copy">
+                        <h3>What's next?</h3>
+                        <p>Save this journey, explore the map or compare travel options.</p>
+                    </div>
+
+                    <div class="action-buttons">
+
+                        <form method="POST" action="{% url 'travel:save_trip' %}" class="save-trip-form">
+                            {% csrf_token %}
+
+                            <input type="hidden" name="source" value="{{ route_data.source }}">
+                            <input type="hidden" name="destination" value="{{ route_data.destination }}">
+                            <input type="hidden" name="transport" value="{{ route_data.transport }}">
+                            <input type="hidden" name="distance_km" value="{{ route_data.distance_km }}">
+                            <input type="hidden" name="duration" value="{{ route_data.duration }}">
+                            <input type="hidden" name="date" value="{{ route_data.date }}">
+                            <input type="hidden" name="time" value="{{ route_data.time }}">
+                            <input type="hidden" name="passengers" value="{{ route_data.passengers }}">
+                            <input type="hidden" name="estimated_total_fare"
+                                value="{{ route_data.estimated_total_fare_raw }}">
+
+                            <button type="submit" class="action-button primary-action">
+                                ♡ Save Trip
+                            </button>
+                        </form>
+
+
+                        <a class="action-button" id="view-map-button"
+                            href="https://www.google.com/maps/dir/?api=1&origin={{ route_data.source|urlencode }}&destination={{ route_data.destination|urlencode }}"
+                            target="_blank" rel="noopener noreferrer">
+                            ↗ View Map
+                        </a>
+
+                        <form method="GET"
+      action="{% url 'travel:book_ticket' %}"
+      class="save-trip-form">
+
+    <input type="hidden" name="source"
+           value="{{ route_data.source }}">
+    <input type="hidden" name="destination"
+           value="{{ route_data.destination }}">
+    <input type="hidden" name="transport"
+           value="{{ route_data.transport }}">
+    <input type="hidden" name="distance_km"
+           value="{{ route_data.distance_km }}">
+    <input type="hidden" name="duration"
+           value="{{ route_data.duration }}">
+    <input type="hidden" name="date"
+           value="{{ route_data.date }}">
+    <input type="hidden" name="time"
+           value="{{ route_data.time }}">
+    <input type="hidden" name="passengers"
+           value="{{ route_data.passengers }}">
+
+    <button type="submit" class="action-button primary-action">
+        🎫 Book Ticket
+    </button>
+</form>
+
+                        <button type="button" class="action-button" id="compare-options-button">
+                            ⇄ Compare Options
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        {{ route_data.polyline|json_script:"route-polyline" }}
+
+        <script src="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.js"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const searchSection = document.getElementById("search-section");
+                const resultsSection = document.getElementById("results-section");
+                const editButton = document.getElementById("edit-route-button");
+
+                // Show the existing form again without losing the previous result.
+                editButton.addEventListener("click", function () {
+                    searchSection.hidden = false;
+                    resultsSection.hidden = true;
+                    searchSection.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start"
+                    });
+
+                    const sourceInput = document.getElementById("source");
+                    if (sourceInput) {
+                        sourceInput.focus({ preventScroll: true });
+                    }
+                });
+
+                // These actions are placeholders until connected to Django views.
+
+                // document.getElementById("save-trip-button").addEventListener("click", function () {
+                //     alert("Save Trip is not connected yet. It needs to be linked to the trip-saving feature.");
+                // });
+
+                // document.getElementById("book-ticket-button").addEventListener("click", function () {
+                //     alert("Ticket booking is not connected yet. A booking provider or external booking link is needed.");
+                // });
+
+                document.getElementById("compare-options-button").addEventListener("click", function () {
+                    alert("Compare Options is not connected yet. It needs to be linked to the route comparison feature.");
+                });
+
+                const polylineElement = document.getElementById("route-polyline");
+                if (!polylineElement) return;
+
+                let encodedPolyline;
+
+                try {
+                    encodedPolyline = JSON.parse(polylineElement.textContent);
+                } catch (error) {
+                    console.error("Unable to read route polyline:", error);
+                    return;
+                }
+
+                if (!encodedPolyline) {
+                    console.error("No route polyline was provided.");
+                    return;
+                }
+
+                function decodePolyline(encoded) {
+                    let index = 0;
+                    let lat = 0;
+                    let lng = 0;
+                    const coordinates = [];
+
+                    while (index < encoded.length) {
+                        let result = 0;
+                        let shift = 0;
+                        let byte;
+
+                        do {
+                            byte = encoded.charCodeAt(index++) - 63;
+                            result |= (byte & 0x1f) << shift;
+                            shift += 5;
+                        } while (byte >= 0x20);
+
+                        const deltaLat = (result & 1) ? ~(result >> 1) : (result >> 1);
+                        lat += deltaLat;
+
+                        result = 0;
+                        shift = 0;
+
+                        do {
+                            byte = encoded.charCodeAt(index++) - 63;
+                            result |= (byte & 0x1f) << shift;
+                            shift += 5;
+                        } while (byte >= 0x20);
+
+                        const deltaLng = (result & 1) ? ~(result >> 1) : (result >> 1);
+                        lng += deltaLng;
+
+                        coordinates.push([lng / 1e5, lat / 1e5]);
+                    }
+
+                    return coordinates;
+                }
+
+                const coordinates = decodePolyline(encodedPolyline);
+                if (!coordinates.length) return;
+
+                const firstPoint = coordinates[0];
+                const lastPoint = coordinates[coordinates.length - 1];
+
+                const map = new maplibregl.Map({
+                    container: "route-map",
+                    style: "https://tiles.openfreemap.org/styles/liberty",
+                    center: firstPoint,
+                    zoom: 11
+                });
+
+                map.addControl(new maplibregl.NavigationControl(), "top-right");
+
+                map.on("load", function () {
+                    map.addSource("travel-route", {
+                        type: "geojson",
+                        data: {
+                            type: "Feature",
+                            properties: {},
+                            geometry: {
+                                type: "LineString",
+                                coordinates: coordinates
+                            }
+                        }
+                    });
+
+                    map.addLayer({
+                        id: "travel-route-line",
+                        type: "line",
+                        source: "travel-route",
+                        layout: {
+                            "line-join": "round",
+                            "line-cap": "round"
+                        },
+                        paint: {
+                            "line-color": "#5266d8",
+                            "line-width": 5,
+                            "line-opacity": 0.9
+                        }
+                    });
+
+                    map.addSource("route-markers", {
+                        type: "geojson",
+                        data: {
+                            type: "FeatureCollection",
+                            features: [
+                                {
+                                    type: "Feature",
+                                    properties: { label: "Start" },
+                                    geometry: {
+                                        type: "Point",
+                                        coordinates: firstPoint
+                                    }
+                                },
+                                {
+                                    type: "Feature",
+                                    properties: { label: "Destination" },
+                                    geometry: {
+                                        type: "Point",
+                                        coordinates: lastPoint
+                                    }
+                                }
+                            ]
+                        }
+                    });
+
+                    map.addLayer({
+                        id: "route-marker-circles",
+                        type: "circle",
+                        source: "route-markers",
+                        paint: {
+                            "circle-radius": 8,
+                            "circle-color": [
+                                "match",
+                                ["get", "label"],
+                                "Start", "#16856b",
+                                "Destination", "#e15b67",
+                                "#5266d8"
+                            ],
+                            "circle-stroke-width": 3,
+                            "circle-stroke-color": "#ffffff"
+                        }
+                    });
+
+                    const bounds = coordinates.reduce(function (bounds, coordinate) {
+                        return bounds.extend(coordinate);
+                    }, new maplibregl.LngLatBounds(firstPoint, firstPoint));
+
+                    map.fitBounds(bounds, {
+                        padding: 55,
+                        maxZoom: 15,
+                        duration: 700
+                    });
+
+                    // Ensure correct sizing when the map is shown or the viewport changes.
+                    setTimeout(function () {
+                        map.resize();
+                    }, 100);
+                });
+            });
+        </script>
+        {% endif %}
+
+        <div class="page-footer">
+            SmartTravel · Plan smarter, travel better
         </div>
-
-        <div class="notice">
-            <strong>Note:</strong>
-            These are demo transport categories, not live schedules,
-            ticket prices, availability or confirmed bookings.
-        </div>
-
-    {% elif searched and not error_message %}
-
-        <div class="notice">
-            No transport options found. Please check your search.
-        </div>
-
-    {% endif %}
-
-</div>
-
-<footer class="footer">
-    SmartTravel &copy; 2026 | Smart Travel Planning System
-</footer>
-
+    </main>
 </body>
+
 </html>
