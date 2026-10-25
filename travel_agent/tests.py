@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 from django.test import TestCase
 
 from .api_clients import LanguageModelError, understand_message
+from travel.routes import RouteAPIError
 from .services import process_travel_request
 
 
@@ -193,6 +194,65 @@ class TravelAgentServiceTests(TestCase):
         self.assertEqual(result["route"]["transport"], "car")
         self.assertIn("Google Routes estimate", result["message"])
         calculate_route.assert_called_once_with("Bhopal", "Indore", "car")
+
+    @patch("travel_agent.services.get_route_distance")
+    @patch("travel_agent.services.calculate_google_route")
+    def test_google_routes_quota_error_falls_back_to_alternate_distance(
+        self,
+        calculate_route,
+        get_distance,
+        understand,
+        hotels,
+        attractions,
+        city,
+    ):
+        calculate_route.side_effect = RouteAPIError(
+            "Google Routes quota exceeded (HTTP 429).",
+            status_code=429,
+        )
+        get_distance.return_value = Mock(
+            km=195.4,
+            source_label="driving distance via OpenStreetMap",
+        )
+        understand.return_value = fake_understanding(
+            ["route"], source="Bhopal", destination="Indore"
+        )
+
+        result = process_travel_request("How can I travel from Bhopal to Indore?")
+
+        self.assertEqual(result["route"]["distance_km"], 195.4)
+        self.assertEqual(
+            result["route"]["comparison"]["distance_source"],
+            "driving distance via OpenStreetMap",
+        )
+        self.assertIn("alternate distance source", result["message"])
+        self.assertIn("195.4 km", result["message"])
+        get_distance.assert_called_once_with("Bhopal", "Indore")
+
+    @patch("travel_agent.services.get_route_distance")
+    @patch("travel_agent.services.calculate_google_route")
+    def test_non_quota_google_route_error_does_not_fall_back(
+        self,
+        calculate_route,
+        get_distance,
+        understand,
+        hotels,
+        attractions,
+        city,
+    ):
+        calculate_route.side_effect = RouteAPIError(
+            "Google Routes could not calculate this route (HTTP 403).",
+            status_code=403,
+        )
+        understand.return_value = fake_understanding(
+            ["route"], source="Bhopal", destination="Indore"
+        )
+
+        result = process_travel_request("How can I travel from Bhopal to Indore?")
+
+        self.assertIsNone(result["route"])
+        self.assertIn("HTTP 403", result["message"])
+        get_distance.assert_not_called()
 
     @patch("travel_agent.services.get_route_distance")
     @patch("travel_agent.services.calculate_google_route")

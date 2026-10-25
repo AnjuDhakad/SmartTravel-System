@@ -113,6 +113,7 @@ class GoogleRoutesTests(SimpleTestCase):
         ) as error:
             calculate_google_route("Bhopal", "Indore")
         self.assertIn("quota may be exhausted", str(error.exception))
+        self.assertEqual(error.exception.status_code, 429)
 
 
 class TravelSearchComparisonIntegrationTests(SimpleTestCase):

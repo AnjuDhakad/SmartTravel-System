@@ -8,6 +8,10 @@ from django.conf import settings
 class RouteAPIError(ValueError):
     """Raised when Google Routes cannot return a usable route."""
 
+    def __init__(self, message, status_code=None):
+        super().__init__(message)
+        self.status_code = status_code
+
 
 def _google_error_message(response, api_key):
     try:
@@ -96,7 +100,8 @@ def calculate_google_route(origin, destination, transport="car"):
 
     if not response.ok:
         raise RouteAPIError(
-            _google_error_message(response, settings.GOOGLE_MAPS_API_KEY)
+            _google_error_message(response, settings.GOOGLE_MAPS_API_KEY),
+            status_code=response.status_code,
         )
 
     try:

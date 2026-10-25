@@ -269,7 +269,23 @@ def process_travel_request(message, previous_city=None):
                     )
                     messages.append(route_message)
                 except RouteAPIError as exc:
-                    messages.append(str(exc))
+                    if exc.status_code == 429:
+                        try:
+                            route_data, route_message = _plan_comparison_route(
+                                source, destination
+                            )
+                        except (DistanceError, ComparisonError) as fallback_exc:
+                            messages.append(
+                                f"{exc} The alternate distance lookup also failed: "
+                                f"{fallback_exc}"
+                            )
+                        else:
+                            messages.append(
+                                "Google Routes is unavailable (HTTP 429), so I used "
+                                f"an alternate distance source. {route_message}"
+                            )
+                    else:
+                        messages.append(str(exc))
                 except (ComparisonError, KeyError, TypeError, ValueError):
                     messages.append(
                         "Google returned unexpected route data. "
