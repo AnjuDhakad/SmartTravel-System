@@ -221,6 +221,7 @@
 
         <div class="nav-links">
             <a href="{% url 'dashboard' %}">Dashboard</a>
+            <a href="{% url 'comparison:compare' %}">Compare Travel</a>
             <a href="{% url 'profile' %}">My Profile</a>
             <a href="{% url 'logout' %}" class="nav-btn">Logout</a>
         </div>
@@ -259,6 +260,25 @@
                 <a href="{% url 'travel:travel_search' %}"
                    class="feature-btn">
                     Search Route →
+                </a>
+
+            </div>
+
+            <!-- Compare Transport -->
+            <div class="feature-card">
+
+                <div class="feature-icon">⚖️</div>
+
+                <h3>Compare Transport</h3>
+
+                <p>
+                    Get automatic route distances and compare travel modes
+                    by cost, time, emissions and comfort.
+                </p>
+
+                <a href="{% url 'comparison:compare' %}"
+                   class="feature-btn">
+                    Compare a Route →
                 </a>
 
             </div>

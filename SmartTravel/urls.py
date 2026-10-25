@@ -24,4 +24,6 @@ urlpatterns = [
     path("recommendations/", include("recommendations.urls")),
     path("bookings/", include("bookings.urls")),
     path("assistant/", include("assistant.urls")),
+    path("compare/", include("comparison.urls")),
+    path("agent/", include("travel_agent.urls")),
 ]

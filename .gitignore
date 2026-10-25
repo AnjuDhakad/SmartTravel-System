@@ -1,7 +1,8 @@
-.env
 .venv/
 venv/
 __pycache__/
 *.pyc
+.env
 travel/views_backup.py
 templates/travel_search_backup.html
+db.sqlite3

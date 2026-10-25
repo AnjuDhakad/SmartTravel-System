@@ -1,6 +1,5 @@
 
 import math
-import requests
 
 from datetime import date, time
 from decimal import Decimal, InvalidOperation
@@ -11,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .models import SavedTrip
+from .routes import RouteAPIError, calculate_google_route
 
 
 def travel_search(request):
@@ -88,165 +88,88 @@ def travel_search(request):
                 )
 
             else:
-                payload = {
-                    "origin": {"address": source},
-                    "destination": {"address": destination},
-                    "travelMode": (
-                        "TWO_WHEELER"
-                        if transport == "two_wheeler"
-                        else "DRIVE"
-                    ),
-                }
-
-                headers = {
-                    "Content-Type": "application/json",
-                    "X-Goog-Api-Key": settings.GOOGLE_MAPS_API_KEY,
-                    "X-Goog-FieldMask": (
-                        "routes.distanceMeters,"
-                        "routes.duration,"
-                        "routes.polyline.encodedPolyline"
-                    ),
-                }
-
                 try:
-                    response = requests.post(
-                        "https://routes.googleapis.com/directions/v2:computeRoutes",
-                        headers=headers,
-                        json=payload,
-                        timeout=25,
+                    result = calculate_google_route(
+                        source,
+                        destination,
+                        transport,
                     )
+                    distance_km = result.get("distanceMeters", 0) / 1000
+                    duration_seconds = int(
+                        result.get("duration", "0s").rstrip("s")
+                    )
+                    total_minutes = max(1, round(duration_seconds / 60))
+                    hours, minutes = divmod(total_minutes, 60)
+                    duration = (
+                        f"{hours} hr {minutes} min"
+                        if hours
+                        else f"{minutes} min"
+                    )
+                    encoded_polyline = result.get(
+                        "polyline", {}
+                    ).get("encodedPolyline", "")
 
-                    if not response.ok:
+                    if not encoded_polyline:
                         context["error"] = (
-                            "Google could not calculate this route. "
-                            "Check the locations, API settings and try again."
+                            "Route was found, but map geometry "
+                            "was not returned."
+                        )
+                    else:
+                        distance_km = round(distance_km, 2)
+                        capacity = passenger_capacity[transport]
+                        vehicles_required = math.ceil(passengers / capacity)
+                        rate = demo_rate_per_km[transport]
+                        estimated_total = round(
+                            distance_km * rate * vehicles_required
                         )
 
-                    else:
-                        data = response.json()
-                        routes = data.get("routes", [])
-
-                        if not routes:
-                            context["error"] = (
-                                "No route was found for these locations."
+                        if vehicles_required > 1:
+                            vehicle_word = (
+                                "bikes"
+                                if transport == "two_wheeler"
+                                else "cars/cabs"
                             )
-
+                            recommendation_reason = (
+                                f"For {passengers} passengers, "
+                                f"{vehicles_required} {vehicle_word} "
+                                "are recommended."
+                            )
                         else:
-                            result = routes[0]
-
-                            distance_km = (
-                                result.get("distanceMeters", 0) / 1000
+                            vehicle_word = (
+                                "bike"
+                                if transport == "two_wheeler"
+                                else "car/cab"
+                            )
+                            passenger_word = (
+                                "passenger"
+                                if passengers == 1
+                                else "passengers"
+                            )
+                            recommendation_reason = (
+                                f"For {passengers} {passenger_word}, "
+                                f"1 {vehicle_word} is sufficient."
                             )
 
-                            duration_seconds = int(
-                                result.get("duration", "0s").rstrip("s")
-                            )
+                        context["route_data"] = {
+                            "source": source,
+                            "destination": destination,
+                            "transport_label": transport_labels[transport],
+                            "transport": transport,
+                            "estimated_total_fare_raw": estimated_total,
+                            "distance_km": distance_km,
+                            "duration": duration,
+                            "date": form_data["date"],
+                            "time": form_data["time"],
+                            "passengers": passengers,
+                            "vehicles_required": vehicles_required,
+                            "show_vehicle_count": vehicles_required > 1,
+                            "recommendation_reason": recommendation_reason,
+                            "polyline": encoded_polyline,
+                            "estimated_total_fare": f"{estimated_total:,}",
+                        }
 
-                            total_minutes = max(
-                                1, round(duration_seconds / 60)
-                            )
-
-                            hours, minutes = divmod(total_minutes, 60)
-
-                            duration = (
-                                f"{hours} hr {minutes} min"
-                                if hours
-                                else f"{minutes} min"
-                            )
-
-                            encoded_polyline = result.get(
-                                "polyline", {}
-                            ).get("encodedPolyline", "")
-
-                            if not encoded_polyline:
-                                context["error"] = (
-                                    "Route was found, but map geometry "
-                                    "was not returned."
-                                )
-
-                            else:
-                                distance_km = round(distance_km, 2)
-
-                                capacity = passenger_capacity[transport]
-
-                                vehicles_required = math.ceil(
-                                    passengers / capacity
-                                )
-
-                                rate = demo_rate_per_km[transport]
-
-                                estimated_total = round(
-                                    distance_km
-                                    * rate
-                                    * vehicles_required
-                                )
-
-                                # English travel recommendation.
-                                if vehicles_required > 1:
-                                    vehicle_word = (
-                                        "bikes"
-                                        if transport == "two_wheeler"
-                                        else "cars/cabs"
-                                    )
-
-                                    recommendation_reason = (
-                                        f"For {passengers} passengers, "
-                                        f"{vehicles_required} {vehicle_word} "
-                                        "are recommended."
-                                    )
-
-                                else:
-                                    vehicle_word = (
-                                        "bike"
-                                        if transport == "two_wheeler"
-                                        else "car/cab"
-                                    )
-
-                                    passenger_word = (
-                                        "passenger"
-                                        if passengers == 1
-                                        else "passengers"
-                                    )
-
-                                    recommendation_reason = (
-                                        f"For {passengers} {passenger_word}, "
-                                        f"1 {vehicle_word} is sufficient."
-                                    )
-
-                                context["route_data"] = {
-                                    "source": source,
-                                    "destination": destination,
-                                    "transport_label": (
-                                        transport_labels[transport]
-                                    ),
-                                    "transport": transport,
-                                    "estimated_total_fare_raw": (
-                                        estimated_total
-                                    ),
-                                    "distance_km": distance_km,
-                                    "duration": duration,
-                                    "date": form_data["date"],
-                                    "time": form_data["time"],
-                                    "passengers": passengers,
-                                    "vehicles_required": vehicles_required,
-                                    "show_vehicle_count": (
-                                        vehicles_required > 1
-                                    ),
-                                    "recommendation_reason": (
-                                        recommendation_reason
-                                    ),
-                                    "polyline": encoded_polyline,
-                                    "estimated_total_fare": (
-                                        f"{estimated_total:,}"
-                                    ),
-                                }
-
-                except requests.RequestException:
-                    context["error"] = (
-                        "Unable to connect to Google Routes. "
-                        "Please try again."
-                    )
-
+                except RouteAPIError as exc:
+                    context["error"] = str(exc)
                 except (ValueError, TypeError, KeyError):
                     context["error"] = (
                         "Unexpected route data received. Please try again."

@@ -1007,9 +1007,10 @@
     </button>
 </form>
 
-                        <button type="button" class="action-button" id="compare-options-button">
+                        <a class="action-button"
+                           href="{% url 'comparison:compare' %}?origin={{ route_data.source|urlencode }}&amp;destination={{ route_data.destination|urlencode }}&amp;distance={{ route_data.distance_km }}&amp;passengers={{ route_data.passengers }}">
                             ⇄ Compare Options
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -1048,10 +1049,6 @@
                 // document.getElementById("book-ticket-button").addEventListener("click", function () {
                 //     alert("Ticket booking is not connected yet. A booking provider or external booking link is needed.");
                 // });
-
-                document.getElementById("compare-options-button").addEventListener("click", function () {
-                    alert("Compare Options is not connected yet. It needs to be linked to the route comparison feature.");
-                });
 
                 const polylineElement = document.getElementById("route-polyline");
                 if (!polylineElement) return;

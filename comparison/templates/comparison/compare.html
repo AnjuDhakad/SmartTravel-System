@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Compare Transport Options | SmartTravel</title>
+  <style>
+    :root { --bg:#f4f6fb; --card:#fff; --text:#1d2433; --muted:#6b7488; --brand:#2563eb; --good:#16a34a; --line:#e3e7f0; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--text); }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 24px 16px 48px; }
+    h1 { margin: 0 0 4px; font-size: 1.7rem; }
+    .sub { color: var(--muted); margin: 0 0 20px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin-bottom: 20px; }
+    form { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; align-items: end; }
+    label { display:block; font-size:.8rem; font-weight:600; color:var(--muted); margin-bottom:4px; }
+    input, select { width:100%; padding:10px; border:1px solid var(--line); border-radius:8px; font-size:1rem; background:#fff; }
+    button { padding: 11px 16px; background: var(--brand); color:#fff; border:0; border-radius:8px; font-size:1rem; font-weight:600; cursor:pointer; }
+    button:hover { filter: brightness(1.08); }
+    .error { background:#fef2f2; border:1px solid #fecaca; color:#b91c1c; padding:12px 14px; border-radius:10px; margin-bottom:20px; }
+    .reco { border: 2px solid var(--good); background: linear-gradient(135deg,#f0fdf4,#fff); }
+    .tag { display:inline-block; background:var(--good); color:#fff; font-size:.75rem; font-weight:700; padding:3px 10px; border-radius:99px; letter-spacing:.04em; }
+    .reco h2 { margin: 8px 0 4px; font-size: 1.6rem; }
+    .stats { display:flex; flex-wrap:wrap; gap:10px 28px; margin: 10px 0 14px; }
+    .stat b { display:block; font-size:1.15rem; }
+    .stat span { font-size:.78rem; color:var(--muted); }
+    .reco ul { margin: 0; padding-left: 20px; }
+    .reco li { margin: 4px 0; }
+    .tbl-wrap { overflow-x:auto; }
+    table { width:100%; border-collapse: collapse; min-width: 620px; }
+    th, td { text-align:left; padding: 12px 10px; border-bottom: 1px solid var(--line); }
+    th { font-size:.78rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
+    tr.best { background:#f0fdf4; }
+    .badge { display:inline-block; font-size:.68rem; font-weight:700; padding:2px 7px; border-radius:99px; background:#e0e7ff; color:#3730a3; margin:2px 4px 2px 0; }
+    .bar { height:8px; background:var(--line); border-radius:99px; overflow:hidden; min-width:80px; }
+    .bar > i { display:block; height:100%; background:var(--brand); }
+    tr.best .bar > i { background: var(--good); }
+    .note { font-size:.8rem; color:var(--muted); margin-top:10px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>⚖️ Compare Transport Options</h1>
+  <p class="sub">See cost, time, emissions and comfort side by side &mdash; and get a smart recommendation.</p>
+
+  <div class="card">
+    <form method="get" action="{% url 'comparison:compare' %}">
+      <div><label for="origin">From</label><input id="origin" name="origin" value="{{ params.origin }}" placeholder="e.g. Indore" required></div>
+      <div><label for="destination">To</label><input id="destination" name="destination" value="{{ params.destination }}" placeholder="e.g. Bhopal" required></div>
+      <div><label for="passengers">Travellers</label><input id="passengers" name="passengers" type="number" min="1" max="20" value="{{ params.passengers }}"></div>
+      <div>
+        <label for="priority">I care most about</label>
+        <select id="priority" name="priority">
+          {% for key, p in priorities.items %}
+            <option value="{{ key }}" {% if key == params.priority %}selected{% endif %}>{{ p.label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div><button type="submit">Compare</button></div>
+      <details style="grid-column: 1 / -1" {% if params.distance %}open{% endif %}>
+        <summary class="note" style="cursor:pointer">Optional: enter the distance manually</summary>
+        <div style="max-width:220px;margin-top:8px">
+          <label for="distance">Distance (km)</label>
+          <input id="distance" name="distance" type="number" step="0.1" min="0.1" value="{{ params.distance }}" placeholder="Leave empty = automatic">
+        </div>
+      </details>
+    </form>
+  </div>
+
+  {% if error %}<div class="error">⚠️ {{ error }}</div>{% endif %}
+
+  {% if result %}
+    <div class="card reco">
+      <span class="tag">RECOMMENDED</span>
+      <h2>{{ result.best.icon }} {{ result.best.label }}</h2>
+      <div class="sub">
+        {% if distance_info %}
+          📍 {{ distance_info.from_name }} → {{ distance_info.to_name }}<br>
+          <strong>{{ result.distance_km|floatformat:"-1" }} km</strong> &middot; {{ distance_info.source_label }}
+        {% else %}
+          {{ params.origin|default:"Start" }} → {{ params.destination|default:"Destination" }} &middot; <strong>{{ result.distance_km|floatformat:"-1" }} km</strong> (entered manually)
+        {% endif %}
+      </div>
+      <div class="stats">
+        <div class="stat"><b>₹{{ result.best.cost|floatformat:0 }}</b><span>Total cost</span></div>
+        <div class="stat"><b>{{ result.best.time_display }}</b><span>Door-to-door time</span></div>
+        <div class="stat"><b>{{ result.best.co2_kg|floatformat:1 }} kg</b><span>CO₂</span></div>
+        <div class="stat"><b>{{ result.best.comfort }}/10</b><span>Comfort</span></div>
+      </div>
+      <strong>Why this option?</strong>
+      <ul>{% for r in result.reasons %}<li>{{ r }}</li>{% endfor %}</ul>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0">All options compared</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Mode</th><th>Cost</th><th>Time</th><th>CO₂</th><th>Comfort</th><th>Match score</th></tr></thead>
+          <tbody>
+          {% for o in result.options %}
+            <tr class="{% if forloop.first %}best{% endif %}">
+              <td>{{ forloop.counter }}</td>
+              <td><strong>{{ o.icon }} {{ o.label }}</strong><br>{% for b in o.badges %}<span class="badge">{{ b }}</span>{% endfor %}</td>
+              <td>₹{{ o.cost|floatformat:0 }}</td>
+              <td>{{ o.time_display }}</td>
+              <td>{{ o.co2_kg|floatformat:1 }} kg</td>
+              <td>{{ o.comfort }}/10</td>
+              <td><div class="bar"><i style="width: {{ o.score|floatformat:0 }}%"></i></div>{{ o.score|floatformat:0 }}/100</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="note">Estimates for {{ result.passengers }} traveller{{ result.passengers|pluralize }}. Time includes waiting/boarding. Costs are approximate (₹).</p>
+    </div>
+  {% endif %}
+</div>
+</body>
+</html>
