@@ -1,130 +1,100 @@
-
-import json
-from difflib import get_close_matches
-from pathlib import Path
 from urllib.parse import urlencode
 
 from comparison.distance import DistanceError, get_route_distance
 from comparison.services import ComparisonError, recommend
 from travel.routes import RouteAPIError, calculate_google_route
 
-
-DATA_FOLDER = Path(__file__).parent / "data"
-
-
-def get_cities():
-    with open(DATA_FOLDER / "cities.json", encoding="utf-8") as file:
-        return json.load(file)
-
-
-def get_attractions(city_name):
-    with open(DATA_FOLDER / "attractions.json", encoding="utf-8") as file:
-        attractions = json.load(file)
-
-    return [
-        item for item in attractions
-        if item["city"].lower() == city_name.lower()
-    ]
+from .api_clients import (
+    PlacesAPIError,
+    TravelAPIError,
+    geocode_city,
+    search_attractions,
+    search_hotels,
+    understand_message,
+)
 
 
-def get_hotels(city_name):
-    with open(DATA_FOLDER / "hotels.json", encoding="utf-8") as file:
-        hotels = json.load(file)
-
-    return [
-        hotel for hotel in hotels
-        if hotel["city"].lower() == city_name.lower()
-    ]
+def _normalise_text(value):
+    if value is None:
+        return ""
+    if not isinstance(value, str):
+        value = str(value)
+    return value.strip()
 
 
 def find_city(name):
-    cities = get_cities()
-    name = name.strip()
+    """Look a city up through the places API."""
+    name = _normalise_text(name)
+    if not name:
+        return {"found": False, "city": None, "suggestions": []}
 
-    for city in cities:
-        if city["name"].lower() == name.lower():
-            return {
-                "found": True,
-                "city": city,
-                "suggestions": [],
-            }
+    try:
+        city = geocode_city(name)
+    except TravelAPIError:
+        city = None
 
-    city_names = [city["name"] for city in cities]
+    if city:
+        return {"found": True, "city": city, "suggestions": []}
 
+    return {"found": False, "city": None, "suggestions": []}
+
+
+def get_attractions(city_name):
+    result = find_city(city_name)
+    if not result["found"]:
+        return []
+    city = result["city"]
+    return search_attractions(city["lat"], city["lon"], city["name"])
+
+
+def get_hotels(city_name):
+    result = find_city(city_name)
+    if not result["found"]:
+        return []
+    city = result["city"]
+    return search_hotels(city["lat"], city["lon"], city["name"])
+
+
+def _make_result(message, intents, success=True, cities=None, source=None,
+                 destination=None, context_city=None, attractions=None,
+                 hotels=None, route=None):
     return {
-        "found": False,
-        "city": None,
-        "suggestions": get_close_matches(
-            name, city_names, n=3, cutoff=0.6
-        ),
+        "success": success,
+        "intent": intents[0],
+        "intents": intents,
+        "cities": cities or [],
+        "source": source,
+        "destination": destination,
+        "context_city": context_city,
+        "suggestions": [],
+        "attractions": attractions or [],
+        "hotels": hotels or [],
+        "route": route,
+        "message": message,
     }
 
 
+def _format_duration(duration_text):
+    total_minutes = round(int(str(duration_text).rstrip("s")) / 60)
+    hours, minutes = divmod(total_minutes, 60)
+    if hours:
+        return f"{hours} hr {minutes} min"
+    return f"{minutes} min"
 
-def extract_cities(message):
+
+def _requested_transport(message, inferred_transport):
+    if inferred_transport != "other":
+        return inferred_transport
+
     message = message.lower()
-    cities = get_cities()
-    found = []
-
-    for city in cities:
-        city_name = city["name"].lower()
-
-        if city_name in message:
-            position = message.find(city_name)
-            found.append((position, city))
-
-    found.sort(key=lambda item: item[0])
-
-    return [city for position, city in found]
-
-
-
-
-def identify_intents(message):
-    message = message.lower()
-
-    keywords = {
-        "hotel": [
-            "hotel", "hotels", "accommodation",
-            "stay", "room", "rooms", "resort",
-            "where can i stay", "places to stay",
-            "find me a place to stay",
-        ],
-        "places": [
-            "tourist", "attraction", "attractions",
-            "sightseeing", "places to visit",
-            "things to do", "what to see",
-            "explore", "places to explore",
-        ],
-        "booking": [
-            "book", "booking", "ticket", "reservation",
-            "make a reservation", "book a room",
-        ],
-        "route": [
-            "route", "travel", "journey", "transport",
-            "distance", "directions", "how to reach",
-            "how do i get to", "how can i get to",
-            "how far", "travel time", "drive", "driving",
-            "bike", "motorcycle", "bus", "train", "flight",
-            "plane", "cab", "taxi", "road trip", "go from",
-            "go to", "going to", "trip from", "directions to",
-        ],
-    }
-
-    intents = []
-
-    for intent, words in keywords.items():
-        for word in words:
-            if word in message:
-                intents.append(intent)
-                break
-
-    return intents or ["general"]
-
-
-
-def identify_intent(message):
-    return identify_intents(message)[0]
+    transit_words = (
+        "bus", "train", "rail", "flight", "plane", "airplane", "transit",
+        "बस", "ट्रेन", "रेल", "हवाई",
+    )
+    for word in message.split():
+        if word.strip(".,!?;:") in transit_words:
+            return "other"
+    return "car"
 
 
 def _route_comparison(source, destination, distance_km, distance_source):
@@ -139,7 +109,10 @@ def _route_comparison(source, destination, distance_km, distance_source):
 def _plan_comparison_route(source, destination):
     distance = get_route_distance(source, destination)
     comparison = _route_comparison(
-        source, destination, distance.km, distance.source_label
+        source,
+        destination,
+        distance.km,
+        distance.source_label,
     )
     route = {
         "distance_km": distance.km,
@@ -159,17 +132,15 @@ def _plan_comparison_route(source, destination):
 
 
 def _plan_google_route(source, destination, transport):
-    label = "two-wheeler" if transport == "two_wheeler" else "driving"
-    result = calculate_google_route(source, destination, transport)
-    distance_km = round(float(result["distanceMeters"]) / 1000, 2)
-    total_minutes = round(int(str(result["duration"]).rstrip("s")) / 60)
-    hours, minutes = divmod(total_minutes, 60)
-    duration = f"{hours} hr {minutes} min" if hours else f"{minutes} min"
+    transport_label = "two-wheeler" if transport == "two_wheeler" else "driving"
+    google_route = calculate_google_route(source, destination, transport)
+    distance_km = round(float(google_route["distanceMeters"]) / 1000, 2)
+    duration = _format_duration(google_route["duration"])
     comparison = _route_comparison(
         source,
         destination,
         distance_km,
-        f"Google Routes {label} distance",
+        f"Google Routes {transport_label} distance",
     )
     route = {
         "distance_km": distance_km,
@@ -180,7 +151,7 @@ def _plan_google_route(source, destination, transport):
     best = comparison["recommended"]
     message = (
         f"The Google Routes estimate from {source} to {destination} "
-        f"by {label} is about {distance_km} km and {duration}. "
+        f"by {transport_label} is about {distance_km} km and {duration}. "
         f"The comparison estimate recommends {best['label']} at about "
         f"₹{best['cost']:,}. Other modes show estimated costs and times, "
         "not live fares or schedules."
@@ -189,103 +160,92 @@ def _plan_google_route(source, destination, transport):
 
 
 def process_travel_request(message, previous_city=None):
-    message = message.strip()
-    intents = identify_intents(message)
+    message = _normalise_text(message)
+    previous_city = _normalise_text(previous_city) or None
 
     if not message:
-        return {
-            "success": False,
-            "intent": "general",
-            "intents": ["general"],
-            "cities": [],
-            "source": None,
-            "destination": None,
-            "context_city": previous_city,
-            "suggestions": [],
-            "attractions": [],
-            "hotels": [],
-            "route": None,
-            "message": "Please describe your travel request.",
-        }
+        return _make_result(
+            "Please describe your travel request.",
+            ["general"],
+            success=False,
+            context_city=previous_city,
+        )
 
-    cities = extract_cities(message)
+    # Step 1: let Groq understand the message (any language).
+    try:
+        understood = understand_message(message, previous_city)
+    except TravelAPIError as exc:
+        return _make_result(
+            str(exc), ["general"], success=False, context_city=previous_city
+        )
 
-    if not cities and previous_city:
+    intents = understood["intents"]
+    source = understood["source"]
+    destination = understood["destination"]
+    transport = _requested_transport(message, understood["transport"])
+
+    # Collect every city name the user mentioned, without repeats.
+    city_names = []
+    seen_cities = set()
+    for name in (source, destination, understood["city"]):
+        if name and name.casefold() not in seen_cities:
+            city_names.append(name)
+            seen_cities.add(name.casefold())
+
+    wants_place_info = any(i in intents for i in ("hotel", "places", "booking"))
+
+    # Step 2: follow-up messages with no city use the previous city.
+    if not city_names and previous_city:
         if "route" in intents:
-            return {
-                "success": True,
-                "intent": intents[0],
-                "intents": intents,
-                "cities": [],
-                "source": previous_city,
-                "destination": None,
-                "context_city": previous_city,
-                "suggestions": [],
-                "attractions": [],
-                "hotels": [],
-                "route": None,
-                "message": (
-                    f"Are you travelling from {previous_city}? "
-                    "Tell me the destination city and I can help you plan."
-                ),
-            }
-        if any(intent in intents for intent in ("hotel", "places", "booking")):
-            city_result = find_city(previous_city)
-            if city_result["found"]:
-                cities = [city_result["city"]]
+            return _make_result(
+                f"Are you travelling from {previous_city}? "
+                "Tell me the destination city and I can help you plan.",
+                intents,
+                source=previous_city,
+                context_city=previous_city,
+            )
+        if wants_place_info:
+            city_names = [previous_city]
 
-    if not cities:
-        lowered_message = message.lower().strip(" .,!?")
-        if lowered_message in {"hi", "hello", "hey", "good morning", "good afternoon", "good evening"}:
+    if not city_names:
+        if "greeting" in intents:
             reply = (
                 "Hello! I can help you explore tourist places and hotels, "
-                "or plan a journey between supported cities. Where are you going?"
+                "or plan a journey between cities. Where are you going?"
             )
             success = True
-        elif lowered_message in {"thanks", "thank you", "thanks a lot"}:
+        elif "thanks" in intents:
             reply = "You're welcome! Let me know where you'd like to travel next."
             success = True
         elif intents == ["general"]:
             reply = (
-                "I'm your local travel assistant. I can suggest hotels and "
-                "tourist attractions from my travel guide. Try asking, "
-                "\"What places can I visit in Bhopal?\""
+                "I'm your travel assistant. I can suggest hotels and "
+                "tourist attractions, or find a route between two cities. "
+                "Try asking, \"What places can I visit in Bhopal?\""
             )
             success = True
         else:
-            reply = (
-                "I couldn't identify that city in my travel guide. "
-                "Please try a supported city such as Bhopal, Indore, Jaipur, "
-                "Delhi, or Mumbai."
-            )
+            reply = "Which city do you mean? Please tell me the city name."
             success = False
-        return {
-            "success": success,
-            "intent": intents[0],
-            "intents": intents,
-            "cities": [],
-            "source": None,
-            "destination": None,
-            "context_city": previous_city,
-            "suggestions": [],
-            "attractions": [],
-            "hotels": [],
-            "route": None,
-            "message": reply,
-        }
+        return _make_result(
+            reply, intents, success=success, context_city=previous_city
+        )
 
-    if "route" in intents and len(cities) == 1 and previous_city:
-        if cities[0]["name"].casefold() != previous_city.casefold():
-            source = previous_city
-            destination = cities[0]["name"]
+    # Step 3: decide the source and destination.
+    if not (source and destination):
+        if "route" in intents and len(city_names) == 1 and previous_city:
+            if city_names[0].casefold() != previous_city.casefold():
+                source = previous_city
+                destination = city_names[0]
+            else:
+                source = city_names[0]
+                destination = None
         else:
-            source = cities[0]["name"]
-            destination = None
-    else:
-        source = cities[0]["name"]
-        destination = cities[1]["name"] if len(cities) > 1 else None
+            source = city_names[0]
+            destination = city_names[1] if len(city_names) > 1 else None
 
-    destination_city = destination or cities[-1]["name"]
+    destination_city = destination or city_names[-1]
+    cities = [{"name": name} for name in city_names]
 
     attractions = []
     hotels = []
@@ -294,12 +254,7 @@ def process_travel_request(message, previous_city=None):
 
     if "route" in intents:
         if destination:
-            lowered_message = message.lower()
-            requested_modes = ("bus", "train", "flight", "plane")
-            if any(
-                word.strip(".,!?;:") in requested_modes
-                for word in lowered_message.split()
-            ):
+            if transport == "other":
                 try:
                     route_data, route_message = _plan_comparison_route(
                         source, destination
@@ -308,14 +263,6 @@ def process_travel_request(message, previous_city=None):
                 except (DistanceError, ComparisonError) as exc:
                     messages.append(str(exc))
             else:
-                transport = (
-                    "two_wheeler"
-                    if any(
-                        word in lowered_message
-                        for word in ("bike", "motorcycle", "two-wheeler")
-                    )
-                    else "car"
-                )
                 try:
                     route_data, route_message = _plan_google_route(
                         source, destination, transport
@@ -323,12 +270,7 @@ def process_travel_request(message, previous_city=None):
                     messages.append(route_message)
                 except RouteAPIError as exc:
                     messages.append(str(exc))
-                except ComparisonError as exc:
-                    messages.append(
-                        f"The route was found, but transport comparisons "
-                        f"are unavailable: {exc}"
-                    )
-                except (KeyError, TypeError, ValueError):
+                except (ComparisonError, KeyError, TypeError, ValueError):
                     messages.append(
                         "Google returned unexpected route data. "
                         "Please try the route search again."
@@ -339,35 +281,43 @@ def process_travel_request(message, previous_city=None):
                 "What city would you like to travel to?"
             )
 
-    if "hotel" in intents:
-        hotels = get_hotels(destination_city)
-
-        if hotels:
-            names = ", ".join(hotel["name"] for hotel in hotels)
+    # Step 4: fetch hotels / attractions from the places API.
+    city_lookup = None
+    if "hotel" in intents or "places" in intents:
+        city_lookup = find_city(destination_city)
+        if not city_lookup["found"]:
             messages.append(
-                f"Here are some hotels in {destination_city}: {names}"
+                f"I couldn't find {destination_city} on the map. "
+                "Please check the spelling of the city."
             )
+
+    if "hotel" in intents and city_lookup and city_lookup["found"]:
+        try:
+            hotels = get_hotels(destination_city)
+        except PlacesAPIError as exc:
+            messages.append(str(exc))
         else:
-            messages.append(
-                f"No hotels are currently listed for {destination_city}."
-            )
+            if hotels:
+                names = ", ".join(hotel["name"] for hotel in hotels)
+                messages.append(f"Here are some hotels in {destination_city}: {names}")
+            else:
+                messages.append(f"I couldn't find any hotels listed for {destination_city}.")
 
-    if "places" in intents:
-        attractions = get_attractions(destination_city)
-
-        if attractions:
-            names = ", ".join(
-                attraction["name"] for attraction in attractions
-            )
-            messages.append(
-                f"Here are the tourist attractions listed for "
-                f"{destination_city}: {names}"
-            )
+    if "places" in intents and city_lookup and city_lookup["found"]:
+        try:
+            attractions = get_attractions(destination_city)
+        except PlacesAPIError as exc:
+            messages.append(str(exc))
         else:
-            messages.append(
-                f"No tourist attractions are currently listed for "
-                f"{destination_city} in our local dataset."
-            )
+            if attractions:
+                names = ", ".join(item["name"] for item in attractions)
+                messages.append(
+                    f"Here are some tourist attractions in {destination_city}: {names}"
+                )
+            else:
+                messages.append(
+                    f"I couldn't find any tourist attractions listed for {destination_city}."
+                )
 
     if "booking" in intents:
         messages.append(
@@ -382,17 +332,21 @@ def process_travel_request(message, previous_city=None):
             "hotels, tourist places, or booking assistance?"
         )
 
-    return {
-        "success": True,
-        "intent": intents[0],
-        "intents": intents,
-        "cities": cities,
-        "source": source,
-        "destination": destination,
-        "context_city": destination_city,
-        "suggestions": [],
-        "attractions": attractions,
-        "hotels": hotels,
-        "route": route_data,
-        "message": " ".join(messages),
-    }
+    if "greeting" in intents and not messages:
+        messages.append("Hello! Where would you like to go?")
+
+    # A city that could not be found is the only failure at this point.
+    success = not (city_lookup and not city_lookup["found"])
+
+    return _make_result(
+        " ".join(messages),
+        intents,
+        success=success,
+        cities=cities,
+        source=source,
+        destination=destination,
+        context_city=destination_city,
+        attractions=attractions,
+        hotels=hotels,
+        route=route_data,
+    )
