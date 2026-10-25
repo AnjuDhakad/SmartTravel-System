@@ -12,6 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .models import SavedTrip
+from .routes import RouteAPIError, calculate_google_route
 
 import requests
 from django.conf import settings
@@ -1044,7 +1045,6 @@ def travel_search(request):
         context,
     )
 
-
 # =========================================================
 # SAVE TRIP
 # =========================================================
@@ -1528,3 +1528,4 @@ def get_flight_routes(source, destination, travel_date):
     ) as exc:
         print("OAG flight request failed:", str(exc))
         return []
+

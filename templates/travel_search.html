@@ -982,10 +982,10 @@
 
                         </form>
 
-                        <button type="button" class="action-button" id="compare-options-button">
+                        <a class="action-button"
+                           href="{% url 'comparison:compare' %}?origin={{ route_data.source|urlencode }}&amp;destination={{ route_data.destination|urlencode }}&amp;distance={{ route_data.distance_km }}&amp;passengers={{ route_data.passengers }}">
                             ⇄ Compare Options
-                        </button>
-
+</a>
                     </div>
                 </div>
 
@@ -1043,12 +1043,14 @@
                         return fallback;
                     }
 
+
                     try {
                         return JSON.parse(element.textContent);
                     } catch (error) {
                         console.error("Could not read " + id, error);
                         return fallback;
                     }
+
                 }
 
                 // Decode Google's encoded polyline format.
