@@ -1,15 +1,20 @@
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Smart Travel | AI Travel Agent</title>
+
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
         :root {
             --primary: #7865f5;
             --primary-dark: #5d4bd8;
@@ -20,6 +25,7 @@
             --border: #eeecfa;
             --white: #ffffff;
         }
+
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
             background: var(--background);
@@ -27,6 +33,7 @@
             line-height: 1.6;
             min-height: 100vh;
         }
+
         .navbar {
             background: var(--white);
             box-shadow: 0 3px 15px rgba(0, 0, 0, 0.06);
@@ -36,6 +43,7 @@
             align-items: center;
             gap: 20px;
         }
+
         .brand {
             display: flex;
             align-items: center;
@@ -43,6 +51,7 @@
             text-decoration: none;
             color: var(--navy);
         }
+
         .brand-icon {
             width: 43px;
             height: 43px;
@@ -54,20 +63,24 @@
             justify-content: center;
             font-size: 23px;
         }
+
         .brand h1 {
             font-size: 21px;
             line-height: 1.2;
         }
+
         .brand p {
             font-size: 11px;
             color: var(--muted);
             letter-spacing: 1px;
         }
+
         .nav-links {
             display: flex;
             align-items: center;
             gap: 25px;
         }
+
         .nav-links a {
             text-decoration: none;
             color: #45445c;
@@ -75,16 +88,19 @@
             font-weight: 600;
             transition: 0.3s;
         }
+
         .nav-links a:hover,
         .nav-links .active {
             color: var(--primary);
         }
+
         .nav-button {
             background: var(--primary);
             color: white !important;
             padding: 10px 17px;
             border-radius: 8px;
         }
+
         .hero {
             padding: 65px 20px 35px;
             text-align: center;
@@ -92,6 +108,7 @@
                 radial-gradient(circle at 10% 20%, #e9e5ff 0, transparent 28%),
                 radial-gradient(circle at 90% 10%, #eeebff 0, transparent 25%);
         }
+
         .badge {
             display: inline-block;
             padding: 7px 15px;
@@ -102,6 +119,7 @@
             font-weight: bold;
             margin-bottom: 18px;
         }
+
         .hero h2 {
             font-size: clamp(30px, 5vw, 47px);
             line-height: 1.2;
@@ -109,20 +127,24 @@
             margin: 0 auto 18px;
             color: var(--navy);
         }
+
         .hero h2 span {
             color: var(--primary);
         }
+
         .hero > p {
             max-width: 650px;
             margin: 0 auto;
             color: var(--muted);
             font-size: 16px;
         }
+
         main {
             max-width: 1050px;
             margin: 0 auto;
             padding: 25px 22px 65px;
         }
+
         .assistant-card {
             background: white;
             border: 1px solid var(--border);
@@ -130,12 +152,14 @@
             padding: 30px;
             box-shadow: 0 8px 25px rgba(48, 37, 110, 0.05);
         }
+
         .assistant-heading {
             display: flex;
             align-items: center;
             gap: 13px;
             margin-bottom: 22px;
         }
+
         .assistant-icon {
             width: 48px;
             height: 48px;
@@ -147,14 +171,17 @@
             border-radius: 13px;
             font-size: 24px;
         }
+
         .assistant-heading h3 {
             font-size: 19px;
             color: var(--navy);
         }
+
         .assistant-heading p {
             font-size: 13px;
             color: var(--muted);
         }
+
         .status {
             margin-left: auto;
             color: var(--primary-dark);
@@ -164,29 +191,14 @@
             font-size: 11px;
             white-space: nowrap;
         }
-        .new-chat-button {
-            margin-left: auto;
-            background: white;
-            color: var(--primary-dark);
-            border: 1px solid var(--border);
-            padding: 9px 13px;
-            border-radius: 9px;
-            font-size: 12px;
-            font-weight: 600;
-            text-decoration: none;
-            white-space: nowrap;
-            transition: 0.2s;
-        }
-        .new-chat-button:hover {
-            background: #f1eaff;
-            border-color: var(--primary);
-        }
+
         label {
             display: block;
             margin-bottom: 10px;
             font-size: 14px;
             font-weight: bold;
         }
+
         textarea {
             width: 100%;
             min-height: 125px;
@@ -200,13 +212,16 @@
             resize: vertical;
             outline: none;
         }
+
         textarea:focus {
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(120, 101, 245, 0.12);
         }
+
         textarea::placeholder {
             color: #9997ad;
         }
+
         .form-bottom {
             display: flex;
             justify-content: space-between;
@@ -214,10 +229,12 @@
             gap: 15px;
             margin-top: 16px;
         }
+
         .form-hint {
             font-size: 12px;
             color: var(--muted);
         }
+
         .submit-button {
             display: inline-flex;
             align-items: center;
@@ -233,24 +250,29 @@
             cursor: pointer;
             transition: background 0.2s, transform 0.2s;
         }
+
         .submit-button:hover {
             background: var(--primary-dark);
             transform: translateY(-1px);
         }
+
         .examples {
             margin-top: 24px;
         }
+
         .examples-title {
             font-size: 12px;
             font-weight: bold;
             color: var(--muted);
             margin-bottom: 11px;
         }
+
         .prompt-list {
             display: flex;
             flex-wrap: wrap;
             gap: 9px;
         }
+
         .prompt {
             border: 1px solid var(--border);
             border-radius: 25px;
@@ -260,11 +282,13 @@
             background: white;
             cursor: pointer;
         }
+
         .prompt:hover {
             border-color: var(--primary);
             color: var(--primary);
             background: #f5f3ff;
         }
+
         .response {
             margin-top: 25px;
             padding: 23px;
@@ -272,61 +296,74 @@
             border: 1px solid #e9e5ff;
             border-radius: 13px;
         }
+
         .response-title {
             display: flex;
             align-items: center;
             gap: 10px;
             margin-bottom: 12px;
         }
+
         .response-title h3 {
             font-size: 17px;
             color: var(--navy);
         }
+
         .response-message {
             color: #514f6b;
             font-size: 14px;
             overflow-wrap: anywhere;
         }
+
         .chat-turn {
             margin-top: 18px;
         }
+
         .chat-bubble {
             padding: 14px 16px;
             border-radius: 12px;
             margin-top: 10px;
         }
+
         .chat-bubble strong {
             display: block;
             font-size: 12px;
             margin-bottom: 5px;
         }
+
         .chat-bubble p {
             color: #514f6b;
             font-size: 14px;
             overflow-wrap: anywhere;
             white-space: pre-wrap;
         }
+
         .user-bubble {
             background: white;
             border: 1px solid var(--border);
         }
+
         .assistant-bubble {
             background: #f1eaff;
             border: 1px solid #e9e1ff;
         }
+
         .city-section {
             margin-top: 20px;
         }
+
         .city-section h4 {
             font-size: 13px;
             margin-bottom: 10px;
         }
+
         .city-list {
             display: flex;
             flex-wrap: wrap;
             gap: 9px;
             list-style: none;
         }
+
         .city-list li {
             background: white;
             border: 1px solid #e9e1ff;
@@ -335,15 +372,19 @@
             font-size: 12px;
             color: #514f6b;
         }
+
         /* ATTRACTION AND HOTEL CARDS */
+
         .attractions-section {
             margin-top: 24px;
         }
+
         .attractions-section h4 {
             font-size: 18px;
             margin-bottom: 15px;
             color: var(--navy);
         }
+
         .route-options {
             margin-top: 20px;
             padding: 18px;
@@ -351,36 +392,43 @@
             border-radius: 12px;
             background: white;
         }
+
         .route-options > p {
             color: var(--muted);
             font-size: 12px;
             margin: 8px 0;
         }
+
         .route-options-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
             gap: 10px;
             margin: 12px 0;
         }
+
         .route-option {
             padding: 12px;
             border: 1px solid var(--border);
             border-radius: 9px;
         }
+
         .route-option h5 {
             color: var(--navy);
             font-size: 14px;
             margin-bottom: 5px;
         }
+
         .route-option p {
             color: var(--muted);
             font-size: 12px;
         }
+
         .attractions-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 16px;
         }
+
         .attraction-card {
             background: white;
             border: 1px solid var(--border);
@@ -388,13 +436,16 @@
             overflow: hidden;
             transition: transform 0.2s, box-shadow 0.2s;
         }
+
         .attraction-card:hover {
             transform: translateY(-3px);
             box-shadow: 0 10px 24px rgba(48, 37, 110, 0.08);
         }
+
         .attraction-details {
             padding: 19px;
         }
+
         .attraction-category {
             display: inline-block;
             color: var(--primary-dark);
@@ -404,16 +455,19 @@
             font-size: 11px;
             margin-bottom: 10px;
         }
+
         .attraction-card h5 {
             font-size: 17px;
             color: var(--navy);
             margin-bottom: 8px;
         }
+
         .attraction-card p {
             font-size: 13px;
             color: var(--muted);
             margin-bottom: 16px;
         }
+
         .attraction-link {
             display: inline-block;
             background: var(--primary);
@@ -426,30 +480,37 @@
             transition: background 0.2s;
             margin: 0 6px 6px 0;
         }
+
         .attraction-link:hover {
             background: var(--primary-dark);
         }
+
         .services-section {
             margin-top: 55px;
         }
+
         .section-heading {
             text-align: center;
             margin-bottom: 25px;
         }
+
         .section-heading h2 {
             font-size: 26px;
             color: var(--navy);
             margin-bottom: 8px;
         }
+
         .section-heading p {
             color: var(--muted);
             font-size: 14px;
         }
+
         .services-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 18px;
         }
+
         .service-card {
             background: white;
             border: 1px solid var(--border);
@@ -457,10 +518,12 @@
             padding: 23px;
             transition: transform 0.2s, box-shadow 0.2s;
         }
+
         .service-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 12px 25px rgba(48, 37, 110, 0.06);
         }
+
         .service-icon {
             width: 47px;
             height: 47px;
@@ -472,15 +535,18 @@
             font-size: 23px;
             margin-bottom: 16px;
         }
+
         .service-card h3 {
             font-size: 16px;
             color: var(--navy);
             margin-bottom: 8px;
         }
+
         .service-card p {
             font-size: 13px;
             color: var(--muted);
         }
+
         .service-label {
             display: inline-block;
             margin-top: 15px;
@@ -488,6 +554,7 @@
             font-size: 11px;
             font-weight: bold;
         }
+
         footer {
             background: var(--white);
             border-top: 1px solid var(--border);
@@ -496,50 +563,64 @@
             color: var(--muted);
             font-size: 12px;
         }
+
         footer strong {
             color: var(--navy);
         }
+
         @media (max-width: 750px) {
             .navbar {
                 padding: 15px 5%;
             }
+
             .nav-links {
                 gap: 12px;
             }
+
             .nav-links a:not(.nav-button) {
                 display: none;
             }
+
             .hero {
                 padding-top: 45px;
             }
+
             main {
                 padding: 20px 15px 45px;
             }
+
             .assistant-card {
                 padding: 22px 18px;
             }
+
             .services-grid {
                 grid-template-columns: 1fr;
             }
+
             .status {
                 display: none;
             }
+
             .form-bottom {
                 align-items: stretch;
                 flex-direction: column;
             }
+
             .submit-button {
                 width: 100%;
             }
+
             .section-heading h2 {
                 font-size: 23px;
             }
         }
+
         @media (max-width: 600px) {
             .attractions-grid {
                 grid-template-columns: 1fr;
             }
         }
+
         @media (min-width: 751px) and (max-width: 950px) {
             .services-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -547,7 +628,9 @@
         }
     </style>
 </head>
+
 <body>
+
     <header class="navbar">
         <a href="/agent/" class="brand">
             <div class="brand-icon">✈</div>
@@ -556,54 +639,130 @@
                 <p>TRAVEL SMARTER</p>
             </div>
         </a>
+
         <nav class="nav-links">
             <a href="/agent/" class="active">AI Travel Agent</a>
             <a href="#services">Explore Services</a>
             <a href="#assistant" class="nav-button">Plan a Trip ↗</a>
         </nav>
     </header>
+
     <section class="hero">
         <div class="badge">✦ YOUR PERSONAL TRAVEL ASSISTANT</div>
+
         <h2>
             Your next journey starts<br>
             with <span>a simple conversation.</span>
         </h2>
+
         <p>
             Discover destinations, explore places to visit, find accommodation,
             and get help with your travel plans across India.
         </p>
     </section>
+
     <main>
         <section class="assistant-card" id="assistant">
+
             <div class="assistant-heading">
                 <div class="assistant-icon">✦</div>
+
                 <div>
                     <h3>Travel Assistant</h3>
                     <p>A local travel guide that remembers your destination.</p>
                 </div>
-                <a href="/agent/?new=1" class="new-chat-button">＋ New Conversation</a>
+
+                <div class="status">● Ready to help</div>
             </div>
+
+            <form method="post" id="chat-form">
+                {% csrf_token %}
+
+                <label for="travel_request">
+                    Your message
+                </label>
+
+                <textarea
+                    id="travel_request"
+                    name="travel_request"
+                    placeholder="Hi! Ask me about hotels or places to visit in Bhopal..."
+                    required
+                ></textarea>
+
+                <div class="form-bottom">
+                    <p class="form-hint">
+                        Ask a follow-up such as “What about hotels?” and I’ll remember the city.
+                    </p>
+
+                    <button type="submit" class="submit-button" id="send-button">
+                        Send message <span>→</span>
+                    </button>
+                </div>
+            </form>
+
+            <div class="examples">
+                <p class="examples-title">NEED AN IDEA? TRY THESE</p>
+
+                <div class="prompt-list">
+                    <button
+                        type="button"
+                        class="prompt"
+                        onclick="usePrompt('I want to travel from Bhopal to Indore')"
+                    >
+                        🚆 Plan a journey
+                    </button>
+
+                    <button
+                        type="button"
+                        class="prompt"
+                        onclick="usePrompt('Suggest hotels in Jaipur')"
+                    >
+                        🏨 Find hotels
+                    </button>
+
+                    <button
+                        type="button"
+                        class="prompt"
+                        onclick="usePrompt('Tell me tourist places to visit in Bhopal')"
+                    >
+                        📍 Explore attractions
+                    </button>
+
+                    <button
+                        type="button"
+                        class="prompt"
+                        onclick="usePrompt('Help me find booking options for a trip to Mumbai')"
+                    >
+                        🎟 Booking assistance
+                    </button>
+                </div>
+            </div>
+
             <div class="response" id="conversation" aria-live="polite">
                 <div class="response-title">
                     <span>✦</span>
                     <h3>Conversation</h3>
                 </div>
+
                 {% if not conversation %}
                     <div class="chat-bubble assistant-bubble">
                         <strong>Travel Assistant</strong>
                         <p>Hi! I can suggest places and hotels from my local travel guide. Where would you like to go?</p>
                     </div>
                 {% endif %}
+
                 {% for turn in conversation %}
                     <div class="chat-turn">
                         <div class="chat-bubble user-bubble">
                             <strong>You</strong>
                             <p>{{ turn.message }}</p>
                         </div>
+
                         <div class="chat-bubble assistant-bubble">
                             <strong>Travel Assistant</strong>
                             <p>{{ turn.response }}</p>
                         </div>
+
                         {% if turn.route.comparison %}
                             <section class="route-options">
                                 <h4>🧭 Transport options · {{ turn.route.distance_km }} km</h4>
@@ -621,6 +780,7 @@
                                 <a class="attraction-link" href="{{ turn.route.comparison.compare_url }}">Compare all options ↗</a>
                             </section>
                         {% endif %}
+
                         {% if turn.attractions %}
                             <div class="attractions-section">
                                 <h4>📍 Tourist Attractions</h4>
@@ -641,6 +801,7 @@
                                 </div>
                             </div>
                         {% endif %}
+
                         {% if turn.hotels %}
                             <div class="attractions-section">
                                 <h4>🏨 Hotels</h4>
@@ -663,69 +824,20 @@
                     </div>
                 {% endfor %}
             </div>
-            <form method="post" id="chat-form">
-                {% csrf_token %}
-                <label for="travel_request">
-                    Your message
-                </label>
-                <textarea
-                    id="travel_request"
-                    name="travel_request"
-                    placeholder="Hi! Ask me about hotels or places to visit in Bhopal..."
-                    required
-                ></textarea>
-                <div class="form-bottom">
-                    <p class="form-hint">
-                        Ask a follow-up such as “What about hotels?” and I’ll remember the city.
-                    </p>
-                    <button type="submit" class="submit-button" id="send-button">
-                        Send message <span>→</span>
-                    </button>
-                </div>
-            </form>
-            <div class="examples">
-                <p class="examples-title">NEED AN IDEA? TRY THESE</p>
-                <div class="prompt-list">
-                    <button
-                        type="button"
-                        class="prompt"
-                        onclick="usePrompt('I want to travel from Bhopal to Indore')"
-                    >
-                        🚆 Plan a journey
-                    </button>
-                    <button
-                        type="button"
-                        class="prompt"
-                        onclick="usePrompt('Suggest hotels in Jaipur')"
-                    >
-                        🏨 Find hotels
-                    </button>
-                    <button
-                        type="button"
-                        class="prompt"
-                        onclick="usePrompt('Tell me tourist places to visit in Bhopal')"
-                    >
-                        📍 Explore attractions
-                    </button>
-                    <button
-                        type="button"
-                        class="prompt"
-                        onclick="usePrompt('Help me find booking options for a trip to Mumbai')"
-                    >
-                        🎟 Booking assistance
-                    </button>
-                </div>
-            </div>
+
             <p class="form-hint" style="margin-top: 12px;">
                 This assistant uses local travel data and simple conversation rules; route calculation is handled by Travel Search.
                 <a href="/agent/?new=1">Start a new conversation</a>
             </p>
+
         </section>
+
         <section class="services-section" id="services">
             <div class="section-heading">
                 <h2>Everything for Your Journey</h2>
                 <p>Explore the services designed to make travel planning easier.</p>
             </div>
+
             <div class="services-grid">
                 <article class="service-card">
                     <div class="service-icon">🚆</div>
@@ -736,6 +848,7 @@
                     </p>
                     <span class="service-label">SMART TRAVEL PLANNING</span>
                 </article>
+
                 <article class="service-card">
                     <div class="service-icon">🏨</div>
                     <h3>Hotel Suggestions</h3>
@@ -745,6 +858,7 @@
                     </p>
                     <span class="service-label">ACCOMMODATION</span>
                 </article>
+
                 <article class="service-card">
                     <div class="service-icon">📍</div>
                     <h3>Tourist Attractions</h3>
@@ -757,25 +871,31 @@
             </div>
         </section>
     </main>
+
     <footer>
         <p>
             <strong>Smart Travel</strong> &nbsp;|&nbsp;
             Your companion for smarter travel planning.
         </p>
     </footer>
+
     <script>
         function usePrompt(message) {
             const textarea = document.getElementById("travel_request");
+
             textarea.value = message;
             textarea.focus();
+
             textarea.scrollIntoView({
                 behavior: "smooth",
                 block: "center"
             });
         }
+
         function addBubble(container, speaker, message, className) {
             const bubble = document.createElement("div");
             bubble.className = `chat-bubble ${className}`;
+
             const title = document.createElement("strong");
             title.textContent = speaker;
             const text = document.createElement("p");
@@ -783,11 +903,13 @@
             bubble.append(title, text);
             container.appendChild(bubble);
         }
+
         function addLink(container, label, url) {
             if (!url) return;
             try {
                 const parsedUrl = new URL(url);
                 if (!["http:", "https:"].includes(parsedUrl.protocol)) return;
+
                 const link = document.createElement("a");
                 link.className = "attraction-link";
                 link.href = parsedUrl.href;
@@ -799,19 +921,23 @@
                 return;
             }
         }
+
         function addCards(container, data) {
             const sections = [
                 { key: "attractions", title: "📍 Tourist Attractions" },
                 { key: "hotels", title: "🏨 Hotels" }
             ];
+
             sections.forEach(({ key, title }) => {
                 if (!data[key] || !data[key].length) return;
+
                 const section = document.createElement("div");
                 section.className = "attractions-section";
                 const heading = document.createElement("h4");
                 heading.textContent = title;
                 const grid = document.createElement("div");
                 grid.className = "attractions-grid";
+
                 data[key].forEach((item) => {
                     const card = document.createElement("article");
                     card.className = "attraction-card";
@@ -827,6 +953,7 @@
                     const description = document.createElement("p");
                     description.textContent = item.description;
                     details.append(category, name, description);
+
                     if (key === "hotels") {
                         addLink(details, "Visit Website ↗", item.booking_url);
                     } else {
@@ -837,38 +964,49 @@
                             `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${item.name}, ${item.city}`)}`
                         );
                     }
+
                     card.appendChild(details);
                     grid.appendChild(card);
                 });
+
                 section.append(heading, grid);
                 container.appendChild(section);
             });
         }
+
         function addRouteOptions(container, route) {
             if (!route || !route.comparison) return;
+
             const section = document.createElement("section");
             section.className = "route-options";
+
             const heading = document.createElement("h4");
             heading.textContent = `🧭 Transport options · ${route.distance_km} km`;
+
             const distanceSource = document.createElement("p");
             distanceSource.textContent = `Distance: ${route.comparison.distance_source}`;
+
             const grid = document.createElement("div");
             grid.className = "route-options-grid";
             route.comparison.options.forEach((option) => {
                 const card = document.createElement("article");
                 card.className = "route-option";
+
                 const name = document.createElement("h5");
                 name.textContent = `${option.icon} ${option.label}`;
                 const costTime = document.createElement("p");
                 costTime.textContent = `About ₹${option.cost} · ${option.time_display}`;
                 const emissions = document.createElement("p");
                 emissions.textContent = `${option.co2_kg} kg CO₂`;
+
                 card.append(name, costTime, emissions);
                 grid.appendChild(card);
             });
+
             const note = document.createElement("p");
             note.textContent = "Costs and times are estimates, not live fares or schedules.";
             section.append(heading, distanceSource, grid, note);
+
             const compareUrl = new URL(
                 route.comparison.compare_url,
                 window.location.origin
@@ -880,22 +1018,28 @@
                 link.textContent = "Compare all options ↗";
                 section.appendChild(link);
             }
+
             container.appendChild(section);
         }
+
         document.getElementById("travel_request").addEventListener("keydown", (event) => {
             if (event.key !== "Enter" || event.shiftKey || event.isComposing) return;
+
             event.preventDefault();
             document.getElementById("chat-form").requestSubmit();
         });
+
         document.getElementById("chat-form").addEventListener("submit", async (event) => {
             event.preventDefault();
             const textarea = document.getElementById("travel_request");
             const button = document.getElementById("send-button");
             const message = textarea.value.trim();
             if (!message) return;
+
             const conversation = document.getElementById("conversation");
             addBubble(conversation, "You", message, "user-bubble");
             button.disabled = true;
+
             try {
                 const response = await fetch("/agent/api/chat/", {
                     method: "POST",
@@ -906,6 +1050,7 @@
                 if (!response.ok) {
                     throw new Error(data.error || "The message could not be processed.");
                 }
+
                 addBubble(conversation, "Travel Assistant", data.message, "assistant-bubble");
                 addRouteOptions(conversation, data.route);
                 addCards(conversation, data);
@@ -924,5 +1069,6 @@
             }
         });
     </script>
+
 </body>
 </html>

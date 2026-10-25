@@ -1,0 +1,326 @@
+,State,City,Name,Establishment Year,time needed to visit in hrs,Google review rating,Entrance Fee in INR
+0,Delhi,Delhi,India Gate,1921,0.5,4.6,0
+1,Delhi,Delhi,Humayun's Tomb,1572,2.0,4.5,30
+2,Delhi,Delhi,Akshardham Temple,2005,5.0,4.6,60
+3,Delhi,Delhi,Waste to Wonder Park,2019,2.0,4.1,50
+4,Delhi,Delhi,Jantar Mantar,1724,2.0,4.2,15
+5,Delhi,Delhi,Chandni Chowk,1700,3.0,4.2,0
+6,Delhi,Delhi,Lotus Temple,1986,1.0,4.5,0
+7,Delhi,Delhi,Red Fort,1648,2.0,4.5,35
+8,Delhi,Delhi,Agrasen ki Baoli,1400,1.0,4.2,0
+9,Delhi,Delhi,Sunder Nursery,1600,2.0,4.6,0
+10,Delhi,Delhi,Garden of Five Senses,2003,2.0,4.1,35
+11,Delhi,Delhi,Lodhi Garden,1500,1.0,4.5,0
+12,Delhi,Delhi,National Gallery of Modern Art,1954,3.0,4.5,20
+13,Delhi,Delhi,National Zoological Park ,1959,3.0,4.1,80
+14,Delhi,Delhi,Qutub Minar,1192,1.0,4.5,35
+15,Delhi,Delhi,National Science Centre,1992,5.0,4.4,70
+16,Maharastra,Mumbai,Marine Drive,Unknown,2.0,4.5,0
+17,Maharastra,Mumbai,Gateway of India,1924,1.0,4.6,0
+18,Maharastra,Mumbai,Chhatrapati Shivaji Maharaj Vastu Sangrahalaya,1922,1.0,4.6,500
+19,Maharastra,Mumbai,Sanjay Gandhi National Park,1996,3.0,4.3,50
+20,Maharastra,Mumbai,Siddhivinayak Temple,1881,2.0,4.8,0
+21,Maharastra,Mumbai,Mahalaxmi Temple,1831,1.0,4.7,0
+22,Maharastra,Mumbai,Haji Ali Dargah,1431,2.0,4.4,0
+23,Maharastra,Mumbai,Chowpatty Beach,Unknown,2.0,4.3,0
+24,Maharastra,Mumbai,Essel World,1986,5.0,4.3,1149
+25,Maharastra,Mumbai,Elephanta Caves,1987,4.0,4.3,550
+26,Maharastra,Lonavala,Imagicaa,2013,5.0,1.4,1149
+27,Karnataka,Bangalore,Bangalore Palace,1878,2.0,4.2,500
+28,Karnataka,Bangalore,Lalbagh Botanical Garden,1760,1.5,4.4,20
+29,Karnataka,Bangalore,Cubbon Park,1870,1.0,4.4,0
+30,Karnataka,Bangalore,Vidhana Soudha,1956,0.5,4.6,0
+31,Karnataka,Bangalore,ISKCON Temple Bangalore,1997,1.0,4.6,0
+32,Telangana,Hyderabad,Charminar,1591,1.0,4.5,25
+33,Telangana,Hyderabad,Golconda Fort,1600,2.0,4.4,30
+34,Telangana,Hyderabad,Hussain Sagar Lake,1563,1.0,4.3,0
+35,Telangana,Hyderabad,Ramoji Film City,1996,4.0,4.4,1150
+36,Telangana,Hyderabad,Salar Jung Museum,1951,2.0,4.4,20
+37,Telangana,Hyderabad,Qutb Shahi Tombs,1600,1.0,4.4,25
+38,Telangana,Hyderabad,Birla Mandir,1976,1.0,4.7,0
+39,Telangana,Hyderabad,Chowmahalla Palace,1800,1.5,4.4,80
+40,Telangana,Hyderabad,Nehru Zoological Park,1963,3.0,4.2,50
+41,Telangana,Hyderabad,Lumbini Park,1994,1.0,4.1,20
+42,West Bengal,Kolkata,Victoria Memorial,1921,1.5,4.6,30
+43,West Bengal,Kolkata,Howrah Bridge,1943,0.5,4.6,0
+44,West Bengal,Kolkata,Indian Museum,1814,2.0,4.6,50
+45,West Bengal,Kolkata,Dakshineswar Kali Temple,1855,1.0,4.7,0
+46,West Bengal,Kolkata,Kalighat Kali Temple,1809,1.0,4.4,0
+47,West Bengal,Kolkata,Eden Gardens,1864,3.0,4.1,2500
+48,West Bengal,Kolkata,Alipore Zoological Gardens,1876,2.0,4.3,25
+49,West Bengal,Kolkata,Science City Kolkata,1997,3.0,4.4,60
+50,West Bengal,Kolkata,Belur Math,1898,1.5,4.7,0
+51,West Bengal,Kolkata,Marble Palace,1835,1.0,4.4,0
+52,Goa,Goa,Calangute Beach,Unknown,2.0,4.4,0
+53,Goa,Goa,Basilica of Bom Jesus,1605,1.0,4.5,0
+54,Goa,Goa,Fort Aguada,1612,1.5,4.2,0
+55,Goa,Goa,Dudhsagar Falls,Unknown,3.0,4.6,500
+56,Goa,Goa,Anjuna Beach,Unknown,2.0,4.4,0
+57,Goa,Goa,Chapora Fort,1617,1.0,4.2,0
+58,Goa,Goa,Se Cathedral,1640,1.0,4.5,0
+59,Goa,Goa,Baga Beach,Unknown,2.0,4.5,0
+60,Goa,Goa,Arambol Beach,Unknown,2.0,4.6,0
+61,Goa,Goa,Palolem Beach,Unknown,2.0,4.6,0
+62,Goa,Goa,Colva Beach,Unknown,2.0,4.3,0
+63,Goa,Goa,Miramar Beach,Unknown,1.5,4.2,0
+64,Goa,Goa,Aguada Beach,Unknown,2.0,4.5,0
+65,Goa,Goa,Dr. Salim Ali Bird Santuary,1988,2.0,3.9,10
+66,Gujarat,Ahmedabad,Sabarmati Ashram,1915,1.5,4.6,0
+67,Gujarat,Dwarka,Dwarkadhish Temple,-400,2.0,4.7,0
+68,Gujarat,Junagadh,Gir National Park,1965,3.0,4.5,3500
+69,Gujarat,Bhuj,White Desert,1950,2.5,4.6,0
+70,Gujarat,Vadodara,Laxmi Vilas Palace,1890,2.0,4.4,200
+71,Gujarat,Somnath,Somnath Temple,1951,2.0,4.8,0
+72,Gujarat,Rann of Kutch,Rann Utsav,Unknown,3.0,4.9,7500
+73,Gujarat,Kevadia,Statue of Unity,2018,3.0,4.6,350
+74,Gujarat,Gandhinagar,Dandi Kutir,2013,1.5,4.5,0
+75,Gujarat,Ahmedabad,Sabarmati Riverfront,2012,1.0,4.6,0
+76,Gujarat,Ahmedabad,Manek Chowk,Unknown,2.0,4.4,0
+77,Gujarat,Ahmedabad,Kankaria Lake,1451,3.0,4.5,10
+78,Gujarat,Ahmedabad,Science City,2002,7.0,4.4,500
+79,Rajasthan,Jaipur,Hawa Mahal,1799,1.0,4.4,50
+80,Rajasthan,Udaipur,City Palace,1559,2.0,4.4,300
+81,Rajasthan,Jaisalmer,Jaisalmer Fort,1156,2.5,4.4,50
+82,Rajasthan,Sawai Madhopur,Ranthambore National Park,1980,3.0,4.6,500
+83,Rajasthan,Pushkar,Pushkar Lake,1400,1.5,4.4,0
+84,Rajasthan,Ajmer,Ajmer Sharif Dargah,1236,1.0,4.6,0
+85,Rajasthan,Jodhpur,Mehrangarh Fort,1459,2.0,4.6,100
+86,Rajasthan,Chittorgarh,Chittorgarh Fort,700,2.0,4.6,40
+87,Rajasthan,Mount Abu,Dilwara Temples,1100,1.0,4.6,0
+88,Rajasthan,Bikaner,Junagarh Fort,1589,2.0,4.5,50
+89,Rajasthan,Jaipur,Amber Fort,1592,2.0,4.6,100
+90,Rajasthan,Jaipur,Jaigarh Fort,1726,1.5,4.5,35
+91,Rajasthan,Udaipur,Lake Pichola,1362,1.0,4.6,0
+92,Punjab,Amritsar,Golden Temple (Harmandir Sahib),1604,1.5,4.9,0
+93,Punjab,Amritsar,Jallianwala Bagh,1951,1.0,4.8,0
+94,Punjab,Amritsar,Wagah Border,1950,2.0,4.8,0
+95,Punjab,Chandigarh,Rock Garden,1976,2.0,4.5,30
+96,Kerala,Alappuzha,Alappuzha Beach,Unknown,1.5,4.5,0
+97,Kerala,Munnar,Munnar Tea Gardens,Unknown,2.0,4.3,0
+98,Kerala,Kochi,Fort Kochi,1503,1.0,4.4,0
+99,Kerala,Thiruvananthapuram,Padmanabhaswamy Temple,Unknown,1.0,4.7,0
+100,Kerala,Kozhikode,Kozhikode Beach,Unknown,1.5,3.9,0
+101,Kerala,Wayanad,Wayanad Wildlife Sanctuary,Unknown,3.0,4.5,300
+102,Kerala,Thekkady,Periyar National Park,1982,3.0,4.3,50
+103,Kerala,Kumarakom,Kumarakom Bird Sanctuary,1972,2.0,3.8,50
+104,Kerala,Varkala,Varkala Beach,Unknown,2.0,4.6,0
+105,Kerala,Bekal,Bekal Fort,1650,1.5,4.5,20
+106,Kerala,Kovalam,Kovalam Beach,Unknown,2.0,4.4,0
+107,Kerala,Kannur,St. Angelo Fort,1505,1.0,4.4,20
+108,Kerala,Nelliyampathy,Seethargundu Viewpoint,Unknown,1.0,4.5,0
+109,Kerala,Kochi,Kerala Folklore Museum,2009,1.5,4.4,100
+110,Kerala,Kochi,Wonderla Amusement Park,2016,5.5,4.6,750
+111,Karnataka,Mysore,Mysore Palace,1912,2.0,4.6,50
+112,Karnataka,Hampi,Hampi Archaeological Ruins,Unknown,3.0,4.7,0
+113,Karnataka,Coorg,Abbey Falls,Unknown,1.0,4.1,0
+114,Karnataka,Gokarna,Om Beach,Unknown,2.0,4.5,0
+115,Karnataka,Chikmagalur,Mullayanagiri,Unknown,3.0,4.5,0
+116,Karnataka,Badami,Badami Cave Temples,600,1.5,4.6,30
+117,Karnataka,Shivamogga,Jog Falls,1900,1.5,4.6,30
+118,Karnataka,Mangalore,Panambur Beach,Unknown,1.5,4.5,0
+119,Karnataka,Murudeshwar,Murudeshwar Temple,Unknown,1.0,4.7,0
+120,Karnataka,Bijapur,Gol Gumbaz,1656,1.5,4.5,20
+121,Karnataka,Bandipur,Bandipur National Park,1974,3.0,4.4,300
+122,Karnataka,Halebidu,Halebidu Hoysaleswara Temple,1121,1.0,4.7,15
+123,Maharastra,Pune,Shaniwar Wada,1732,2.0,4.4,50
+124,Maharastra,Aurangabad,Ajanta Caves,200,3.0,4.6,30
+125,Maharastra,Nashik,Sula Vineyards,1999,2.0,4.1,300
+126,Maharastra,Shirdi,Sai Baba Temple,1922,1.5,4.7,0
+127,Maharastra,Alibaug,Alibaug Beach,Unknown,1.5,4.2,0
+128,Maharastra,Ratnagiri,Ganapatipule Temple,1600,1.0,4.7,0
+129,Maharastra,Nagpur,Deekshabhoomi,2001,1.0,4.5,0
+130,Maharastra,Kolhapur,Mahalakshmi Temple,700,1.0,4.8,0
+131,Maharastra,Lonavala,Karla Caves,200,1.5,4.4,25
+132,Maharashtra,Tarkarli,Tarkarli Beach,Unknown,2.0,4.6,0
+133,Maharashtra,Satara,Kaas Plateau,Unknown,2.0,4.4,300
+134,Maharashtra,Matheran,Echo Point,1828,1.5,4.4,0
+135,Maharashtra,Ajanta,Ellora Caves,600,3.0,4.7,30
+136,Madhya Pradesh,Khajuraho,Khajuraho Group of Monuments,-850,2.0,4.7,40
+137,Madhya Pradesh,Bhopal,Sanchi Stupa,-300,1.5,4.7,30
+138,Madhya Pradesh,Indore,Rajwada Palace,1747,1.0,4.4,10
+139,Madhya Pradesh,Gwalior,Gwalior Fort,900,2.5,4.5,75
+140,Madhya Pradesh,Ujjain,Mahakaleshwar Jyotirlinga,-3500,1.5,4.8,0
+141,Madhya Pradesh,Jabalpur,Dhuandhar Falls,Unknown,1.0,4.5,0
+142,Madhya Pradesh,Pachmarhi,Bee Falls,Unknown,1.5,4.6,15
+143,Madhya Pradesh,Kanha,Kanha National Park,1955,3.0,4.5,100
+144,Madhya Pradesh,Bandhavgarh,Bandhavgarh National Park,1968,3.0,4.5,50
+145,Madhya Pradesh,Orchha,Orchha Fort,1500,1.5,4.8,10
+146,Madhya Pradesh,Mandu,Jahaz Mahal,1500,1.0,3.9,50
+147,Madhya Pradesh,Bhimbetka,Bhimbetka Rock Shelters,1958,2.0,4.6,25
+148,Madhya Pradesh,Amarkantak,Narmada Udgam Temple,1200,1.0,4.4,0
+149,Madhya Pradesh,Chitrakoot,Chitrakoot Falls,Unknown,1.5,4.4,0
+150,Himachal Pradesh,Shimla,The Ridge,Unknown,1.0,4.7,0
+151,Himachal Pradesh,Manali,Solang Valley,Unknown,2.0,4.1,0
+152,Himachal Pradesh,dalhousie,Dalai Lama Temple,1959,1.5,4.7,0
+153,Himachal Pradesh,Dalhousie,Khajjiar Lake,Unknown,1.5,4.5,0
+154,Himachal Pradesh,Spiti Valley,Key Monastery,1100,1.0,4.8,0
+155,Himachal Pradesh,Kullu,Great Himalayan National Park,1984,3.0,4.5,50
+156,Himachal Pradesh,Chamba,Chamera Lake,Unknown,2.0,4.4,0
+157,Himachal Pradesh,Kinnaur,Sangla Valley,Unknown,2.0,4.5,0
+158,Himachal Pradesh,Kangra,Kangra Fort,400,2.0,4.4,150
+159,Himachal Pradesh,Palampur,Tea Gardens,1950,1.5,4.6,0
+160,Himachal Pradesh,Mandi,Prashar Lake,1400,1.5,4.6,0
+161,Himachal Pradesh,Bir Billing,Paragliding Site,2005,2.0,4.8,2500
+162,Himachal Pradesh,McLeod Ganj,Triund Trek,Unknown,5.0,4.8,0
+163,Himachal Pradesh,Manikaran,Manikaran Sahib,1980,1.0,4.6,0
+164,Himachal Pradesh,Narkanda,Hatu Peak,Unknown,2.0,4.5,0
+165,Himachal Pradesh,Barot,Barot Valley,Unknown,2.0,4.7,0
+166,Himachal Pradesh,Shoja,Serolsar Lake,Unknown,2.5,4.4,0
+167,Himachal Pradesh,Kufri,Kufri Fun World,1975,5.0,3.8,1500
+168,Uttarakhand,Nainital,Naini Lake,Unknown,1.5,4.2,0
+169,Uttarakhand,Rishikesh,Laxman Jhula,1939,1.0,4.4,0
+170,Uttarakhand,Haridwar,Har Ki Pauri,Unknown,1.0,4.5,0
+171,Uttarakhand,Dehradun,Robber's Cave,Unknown,1.5,4.5,25
+172,Uttarakhand,Mussoorie,Kempty Falls,Unknown,1.5,4.2,15
+173,Uttarakhand,Auli,Auli Ski Resort,1990,3.0,4.5,0
+174,Uttarakhand,Badrinath,Badrinath Temple,-820,1.0,4.8,0
+175,Uttarakhand,Almora,Binsar Wildlife Sanctuary,1988,2.0,4.3,150
+176,Uttarakhand,Ranikhet,Chaubatia Gardens,1868,1.0,4.0,50
+177,Uttarakhand,Jim Corbett,Jim Corbett National Park,1936,3.0,4.4,100
+178,Uttarakhand,Uttarkashi,Gangotri Temple,1751,1.0,4.8,0
+179,Uttarakhand,Chopta,Tungnath Temple,751,2.0,4.8,0
+180,Uttarakhand,Joshimath,Valley of Flowers,1982,5.0,4.7,150
+181,Uttar Pradesh,Agra,Taj Mahal,1632,2.0,4.6,50
+182,Uttar Pradesh,Varanasi,Kashi Vishwanath Temple,Unknown,1.0,4.7,0
+183,Uttar Pradesh,Lucknow,Bara Imambara,1784,1.5,4.4,50
+184,Uttar Pradesh,Mathura,Krishna Janmabhoomi,Unknown,1.0,4.7,0
+185,Uttar Pradesh,Ayodhya,Ram Janmabhoomi,Unknown,1.0,4.8,0
+186,Uttar Pradesh,Vrindavan,Banke Bihari Temple,1864,1.0,4.8,0
+187,Uttar Pradesh,Allahabad,Triveni Sangam,Unknown,1.0,4.5,0
+188,Uttar Pradesh,Jhansi,Jhansi Fort,1613,1.5,4.4,15
+189,Uttar Pradesh,Sarnath,Dhamek Stupa,-500,1.0,4.6,5
+190,Uttar Pradesh,Fatehpur Sikri,Buland Darwaza,1571,2.0,4.4,40
+191,Uttar Pradesh,Noida,Okhla Bird Sanctuary,1990,1.5,4.3,30
+192,Uttar Pradesh,Aligarh,Aligarh Fort,1524,1.0,4.1,20
+193,Uttar Pradesh,Meerut,Augarnath Temple,Unknown,1.0,4.8,0
+194,Uttar Pradesh,Kanpur,Allen Forest Zoo,1971,2.0,4.2,150
+195,Jammu and Kashmir,Srinagar,Dal Lake,Unknown,2.0,4.6,0
+196,Ladakh,Leh,Pangong Tso,Unknown,2.0,4.9,20
+197,Jammu and Kashmir,Pahalgam,Betaab Valley,Unknown,2.0,4.6,100
+198,Jammu and Kashmir,Jammu,Vaishno Devi,Unknown,5.0,4.7,0
+199,Jammu and Kashmir,Udhampur,Patnitop Height,Unknown,2.0,4.1,0
+200,Jammu and Kashmir,Anantnag,Amarnath Cave,Unknown,6.0,4.5,0
+201,Ladakh,Leh,Thiksey Monastery,1430,1.5,4.7,20
+202,Ladakh,Nubra Valley,Nubra Valley,Unknown,2.0,4.5,0
+203,Ladakh,Kargil,Kargil War Memorial,24,1.0,4.8,0
+204,Ladakh,Diskit,Diskit Monastery,1351,1.0,4.7,20
+205,Jammu and Kashmir,Kishtwar,Kishtwar National Park,1981,3.0,4.3,100
+206,Ladakh,Hemis,Hemis National Park,1981,4.0,4.4,20
+207,Ladakh,Dras,Dras War Memorial,Unknown,1.0,4.8,0
+208,Ladakh,Leh,Magnetic Hill,Unknown,0.5,3.7,0
+209,Ladakh,Leh,Khardung La Pass,Unknown,1.0,4.5,0
+210,Ladakh,Leh,Thiksey Monastery,1430,1.5,4.7,30
+211,Uttar Pradesh,Vrindavan,Prem Mandir,2012,1.5,4.8,0
+212,Uttar Pradesh,Porbandar,Kirti Mandir,1950,1.0,4.8,0
+213,Uttar Pradesh,Mathura,Nand Gaon,Unknown,1.0,4.1,0
+214,Uttar Pradesh,Mathura,Barsana Mandir,Unknown,1.0,4.8,0
+215,West Bengal,Darjeeling,Tiger Hill,Unknown,1.0,4.5,0
+216,West Bengal,Siliguri,Jaldapara National Park,1941,3.0,4.4,250
+217,West Bengal,Sundarbans,Sundarbans National Park,1984,4.0,4.4,60
+218,West Bengal,Digha,Digha Beach,Unknown,1.5,4.5,0
+219,West Bengal,Murshidabad,Hazarduari Palace,1837,1.5,4.5,10
+220,West Bengal,Bolpur,Kankalitala Temple,Unknown,0.5,4.7,0
+221,West Bengal,Hooghly,Hangseswari Temple,1814,0.5,4.6,0
+222,West Bengal,Jalpaiguri,Gorumara National Park,1949,3.0,4.4,100
+223,West Bengal,Cooch Behar,Cooch Behar Palace,1887,1.0,4.5,20
+224,West Bengal,Purulia,Ayodhya Hills,Unknown,2.5,4.5,0
+225,Odisha,Puri,Jagannath Temple,12th century,2.0,4.7,0
+226,Odisha,Konark,Sun Temple,1250,1.5,4.7,40
+227,Odisha,Bhubaneswar,Lingaraj Temple,11th century,1.0,4.6,0
+228,Odisha,Rourkela,Khandadhar Waterfall,Unknown,1.5,4.5,0
+229,Odisha,Cuttack,Barabati Fort,-987,1.0,4.5,0
+230,Odisha,Sambalpur,Hirakud Dam,1957,1.0,4.5,0
+231,Odisha,Chilika,Chilika Lake,Unknown,2.0,3.9,0
+232,Odisha,Berhampur,Tara Tarini Temple,Ancient,1.0,4.6,0
+233,Odisha,Keonjhar,Badaghagara Waterfall,Unknown,1.0,4.3,0
+234,Odisha,Balasore,Chandipur Beach,Unknown,1.5,4.2,0
+235,Odisha,Kendujhar,Sanaghagara Waterfall,Unknown,1.0,4.4,0
+236,Tamil Nadu,Chennai,Marina Beach,Unknown,1.5,3.9,0
+237,Tamil Nadu,Madurai,Meenakshi Amman Temple,6th century AD,2.0,4.7,0
+238,Tamil Nadu,Rameswaram,Ramanathaswamy Temple,12th century,1.5,4.6,0
+239,Tamil Nadu,Kanyakumari,Vivekananda Rock Memorial,1970,1.0,4.6,20
+240,Tamil Nadu,Ooty,Ooty Lake,1824,1.0,4.1,10
+241,Tamil Nadu,Coimbatore,Marudamalai Temple,12th century,1.0,4.7,0
+242,Tamil Nadu,Kodaikanal,Kodaikanal Lake,1863,2.0,3.9,0
+243,Tamil Nadu,Thanjavur,Brihadeeswarar Temple,110,1.5,4.8,0
+244,Tamil Nadu,Mahabalipuram,Shore Temple,7th century,1.0,4.6,40
+245,Tamil Nadu,Yercaud,Yercaud Lake,Unknown,1.0,4.2,0
+246,Tamil Nadu,Tirunelveli,Nellaiappar Temple,7th century,1.0,4.6,0
+247,Tamil Nadu,Chidambaram,Nataraja Temple,10th century,1.0,4.7,0
+248,Andhra Pradesh,Vijayawada,Kanaka Durga Temple,Unknown,1.0,4.7,0
+249,Andhra Pradesh,Visakhapatnam,Rishikonda Beach,Unknown,1.5,4.5,0
+250,Andhra Pradesh,Srisailam,Mallikarjuna Swamy Temple,14th century,1.0,4.7,0
+251,Andhra Pradesh,Rajahmundry,Papikondalu,Unknown,2.0,4.3,0
+252,Andhra Pradesh,Anantapur,Lepakshi,16th century,1.5,4.6,0
+253,Andhra Pradesh,Kurnool,Belum Caves,Unknown,1.5,4.4,65
+254,Andhra Pradesh,Amravati,Amaravathi Temple,Unknown,1.0,4.7,0
+255,Andhra Pradesh,Guntur,Uppalapadu Bird Sanctuary,Unknown,1.0,4.4,10
+256,Andhra Pradesh,Kadapa,Gandikota Fort,12th century,1.5,4.5,0
+257,Andhra Pradesh,Puttaparthi,Prasanthi Nilayam,1950,1.0,4.7,0
+258,Andhra Pradesh,Vizianagaram,Simhachalam Temple,198,1.0,4.7,0
+259,Andhra Pradesh,Visakhapatnam,Kailasagiri,Unknown,2.0,4.5,0
+260,Andhra Pradesh,Visakhapatnam,Submarine Museum,22,1.0,4.6,40
+261,Andhra Pradesh,Visakhapatnam,Borra Caves,Unknown,2.0,4.5,60
+262,Andhra Pradesh,Visakhapatnam,War Memorial,Unknown,1.0,4.6,0
+263,Andhra Pradesh,Visakhapatnam,Indira Gandhi Zoological Park,1977,2.0,4.1,20
+264,Andhra Pradesh,Visakhapatnam,Matsyadarshini Aquarium,Unknown,1.0,3.8,20
+265,Andhra Pradesh,Visakhapatnam,Visakha Museum,1991,1.0,4.3,10
+266,Sikkim,Gangtok,Nathula Pass,Unknown,2.0,4.3,20
+267,Sikkim,Pelling,Pemayangtse Monastery,1705,1.0,4.6,20
+268,Sikkim,Namchi,Char Dham,211,2.0,4.7,50
+269,Sikkim,Gangtok,Rumtek Monastery,1960s,1.0,4.6,10
+270,Sikkim,Ravangla,Buddha Park,213,1.0,4.8,50
+271,Sikkim,Gangtok,Baba Harbhajan Singh Temple,1967,1.0,4.7,0
+272,Sikkim,Gangtok,Tsomgo Lake,Unknown,2.0,4.5,0
+273,Assam,Guwahati,Kamakhya Temple,Unknown,2.0,4.6,0
+274,Assam,Kaziranga,Kaziranga National Park,1905,3.0,4.5,650
+275,Assam,Guwahati,Umananda Island,Unknown,1.0,4.1,0
+276,Assam,Sivasagar,Sivasagar Sivadol,1734,1.0,4.7,0
+277,Assam,Majuli,Majuli Island,Unknown,2.0,4.7,0
+278,Assam,Manas,Manas National Park,1990,3.0,4.6,500
+279,Assam,Hajo,Hayagriva Madhava Temple,Unknown,1.0,4.5,0
+280,Assam,Guwahati,Pobitora Wildlife Sanctuary,1987,2.0,4.4,500
+281,Arunachal Pradesh,Tawang,Tawang Monastery,1680,2.0,4.7,0
+282,Tripura,Agartala,Ujjayanta Palace,1901,1.5,4.5,10
+283,Tripura,Dumboor,Dumboor Lake,Unknown,1.0,4.5,0
+284,Tripura,Unakoti,Unakoti Rock Carvings,700,1.5,4.5,20
+285,Chhattisgarh,Bastar,Chitrakote Falls,Unknown,1.5,4.6,0
+286,Nagaland,Dzükou Valley,Dzükou Valley,Unknown,3.0,4.7,0
+287,Puducherry,Puducherry,Promenade Beach,Unknown,1.0,4.5,0
+288,Puducherry,Auroville,Auroville,1968,2.0,4.1,0
+289,Puducherry,Puducherry,Paradise Beach,Unknown,1.0,4.5,200
+290,Andaman and Nicobar Islands,Port Blair,Cellular Jail,1906,1.5,4.7,30
+291,Andaman and Nicobar Islands,Havelock Island,Radhanagar Beach,Unknown,1.0,4.8,0
+292,Andaman and Nicobar Islands,Neil Island,Bharatpur Beach,Unknown,1.0,4.5,0
+293,Andaman and Nicobar Islands,Baratang Island,Limestone Caves,Unknown,1.5,4.4,250
+294,Daman and Diu,Diu,Naida Caves,Unknown,1.0,4.5,0
+295,Daman and Diu,Diu,Diu Fort,1535,1.5,4.6,0
+296,Jharkhand,Deoghar,Baba Baidyanath Temple,Unknown,1.0,4.7,0
+297,Jharkhand,Ranchi,Pahari Mandir,Unknown,1.0,4.6,0
+298,Bihar,Bodh Gaya,Mahabodhi Temple,-260,1.5,4.7,0
+299,Bihar,Patna,Sanjay Gandhi Biological Park,Unknown,2.5,4.3,30
+300,Bihar,Patna,Takhat Shri Harimandir Ji Patna Sahib,Unknown,1.0,4.7,0
+301,Bihar,Patna,Budhha Smriti Park,Unknown,1.0,4.4,10
+302,Haryana,Gurugram,Kingdom of Dreams,2010,3.0,4.4,1100
+303,Haryana,Gurugram,Ambience Mall,Unknown,2.0,4.6,0
+304,Haryana,Gurugram,DLF CyberHub,Unknown,2.0,4.7,0
+305,Delhi,New Delhi,Gurudwara Bangla Sahib,Unknown,1.0,4.8,0
+306,Uttarakhand,Kedarnath,Kedarnath,Unknown,1.5,4.8,0
+307,Uttar Pradesh,Noida,DLF Mall of India,2016,2.0,4.6,0
+308,Uttar Pradesh,Greater Noida,The Grand Venice Mall,Unknown,2.0,4.2,0
+309,Karnataka,Bengaluru,Wonderla Amusement Park,2005,4.0,4.5,890
+310,Odisha,Bhubaneswar,Nandankanan Zoological Park,1960,3.0,4.4,50
+311,Karnataka,Bengaluru,Orion Mall,2012,2.0,4.5,0
+312,Telangana,Hyderabad,Inorbit Mall Cyberabad,2004,2.0,4.5,0
+313,Delhi,New Delhi,Jama Masjid,1656,1.0,4.5,0
+314,Tamil Nadu,Rameswaram,Ramanathaswamy Temple,Unknown,1.5,4.7,0
+315,Uttar Pradesh,Greater Noida,Buddh International Circuit,2011,2.0,4.6,1500
+316,Uttar Pradesh,Lucknow,Phoenix Palassio,2020,2.0,4.6,0
+317,Kerala,Kochi,LuLu International Shopping Mall,2013,3.0,4.6,0
+318,Delhi,New Delhi,Rail Museum,1977,2.0,4.4,50
+319,Meghalaya,Cherrapunji,Living Root Bridge,Unknown,2.0,4.6,0
+320,Gujarat,Gandhinagar,Akshardham,1992,3.0,4.6,0
+321,Uttar Pradesh,Agra,Agra Fort,1565,2.0,4.5,40
+322,Madhya Pradesh,Bhopal,Madhya Pradesh Tribal Museum,2013,2.0,4.7,10
+323,Rajasthan,Jaipur,City Palace,1727,2.0,4.4,200
+324,Rajasthan,Jaipur,Albert Hall Museum,1887,2.0,4.5,200

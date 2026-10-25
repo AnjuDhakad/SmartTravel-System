@@ -1,0 +1,33 @@
+
+[
+    {
+        "name": "Jehan Numa Palace",
+        "city": "Bhopal",
+        "description": "A heritage-style luxury hotel in Shamla Hills, Bhopal.",
+        "booking_url": "https://www.jehannuma.com/palace-bhopal/"
+    },
+    {
+        "name": "Taj Lakefront, Bhopal",
+        "city": "Bhopal",
+        "description": "A luxury hotel near Upper Lake, offering lake views and modern accommodation.",
+        "booking_url": "https://www.tajhotels.com/en-in/hotels/taj-lakefront-bhopal"
+    },
+    {
+        "name": "Hotel Winway",
+        "city": "Indore",
+        "description": "A business hotel on RNT Marg in Indore.",
+        "booking_url": "https://www.hotelwinway.com/"
+    },
+    {
+        "name": "Sayaji Indore",
+        "city": "Indore",
+        "description": "A hotel in Vijay Nagar, Indore, with accommodation and dining facilities.",
+        "booking_url": "https://sayajihotels.com/sayaji-indore"
+    },
+    {
+        "name": "Raffles Jaipur",
+        "city": "Jaipur",
+        "description": "A luxury hotel featuring rooms and suites inspired by Rajasthan's heritage.",
+        "booking_url": "https://www.raffles.com/jaipur/"
+    }
+]
