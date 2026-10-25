@@ -21,6 +21,10 @@ load_dotenv(BASE_DIR / ".env")
 
 GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY", "")
 
+TRAIN_API_KEY = os.getenv("TRAIN_API_KEY", "")
+
+OAG_API_KEY = os.getenv("OAG_API_KEY", "")
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/

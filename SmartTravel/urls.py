@@ -24,4 +24,5 @@ urlpatterns = [
     path("recommendations/", include("recommendations.urls")),
     path("bookings/", include("bookings.urls")),
     path("assistant/", include("assistant.urls")),
+    path("get_flight_routes/", include("travel.urls")),
 ]
