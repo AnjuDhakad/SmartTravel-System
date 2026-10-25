@@ -1,0 +1,100 @@
+[
+  {
+    "name": "Taj-ul-Masajid",
+    "city": "Bhopal",
+    "category": "Religious",
+    "description": "A historic mosque and one of Bhopal's famous landmarks.",
+    "website_url": "https://bhopal.nic.in/en/tourist-place/taj-ul-masajid/"
+  },
+  {
+    "name": "Upper Lake",
+    "city": "Bhopal",
+    "category": "Nature",
+    "description": "A well-known lake offering scenic views in Bhopal.",
+    "website_url": "https://bhopal.nic.in/en/tourism/"
+  },
+  {
+    "name": "Van Vihar National Park",
+    "city": "Bhopal",
+    "category": "Nature",
+    "description": "A national park and zoological area near Upper Lake.",
+    "website_url": "https://www.vanviharnationalpark.org/"
+  },
+  {
+    "name": "Sanchi Stupa",
+    "city": "Bhopal",
+    "category": "Historical",
+    "description": "An important Buddhist heritage site near Bhopal, in Sanchi.",
+    "website_url": "https://museumsanchiasi.mp.gov.in/"
+  },
+  {
+    "name": "Rajwada Palace",
+    "city": "Indore",
+    "category": "Historical",
+    "description": "A historic palace associated with the Holkar dynasty.",
+    "website_url": "https://indore.nic.in/en/tourist-place/rajwada/"
+  },
+  {
+    "name": "Lal Bagh Palace",
+    "city": "Indore",
+    "category": "Historical",
+    "description": "A palace known for its royal architecture and interiors.",
+    "website_url": "https://indore.nic.in/en/tourist-place/lalbag-palace/"
+  },
+  {
+    "name": "Amber Fort",
+    "city": "Jaipur",
+    "category": "Historical",
+    "description": "A hilltop fort and palace complex near Jaipur.",
+    "website_url": "https://www.tourism.rajasthan.gov.in/amber-palace.html"
+  },
+  {
+    "name": "Hawa Mahal",
+    "city": "Jaipur",
+    "category": "Historical",
+    "description": "Jaipur's famous Palace of Winds.",
+    "website_url": "https://www.tourism.rajasthan.gov.in/hawa-mahal.html"
+  },
+  {
+    "name": "Gateway of India",
+    "city": "Mumbai",
+    "category": "Historical",
+    "description": "A landmark arch overlooking the Arabian Sea.",
+    "website_url": "https://mumbaicity.gov.in/en/tourist-place/gateway-of-india/"
+  },
+  {
+    "name": "Marine Drive",
+    "city": "Mumbai",
+    "category": "Nature",
+    "description": "A famous waterfront promenade along the Arabian Sea.",
+    "website_url": "https://maharashtratourism.gov.in/spotlights/marine-drive/"
+  },
+  {
+    "name": "Kashi Vishwanath Temple",
+    "city": "Varanasi",
+    "category": "Religious",
+    "description": "A prominent Hindu temple near the Ganges.",
+    "website_url": "https://www.incredibleindia.gov.in/en"
+  },
+  {
+    "name": "Dashashwamedh Ghat",
+    "city": "Varanasi",
+    "category": "Religious",
+    "description": "A major riverside ghat known for evening Ganga Aarti.",
+    "website_url": "https://www.incredibleindia.gov.in/en"
+  },
+  {
+    "name": "Marina Beach",
+    "city": "Chennai",
+    "category": "Nature",
+    "description": "A long urban beach along the Bay of Bengal.",
+    "website_url": "https://www.incredibleindia.gov.in/en"
+  },
+  {
+    "name": "Kapaleeshwarar Temple",
+    "city": "Chennai",
+    "category": "Religious",
+    "description": "A historic Dravidian-style temple in Mylapore.",
+    "website_url": "https://www.tamilnadutourism.tn.gov.in/"
+  }
+]
