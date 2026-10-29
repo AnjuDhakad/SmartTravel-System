@@ -1,4 +1,4 @@
-
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,107 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartTravel | Saved Trips</title>
 
-    <style>
-        * { box-sizing: border-box; }
+    <link rel="stylesheet" href="{% static 'style.css' %}">
 
-        body {
-            margin: 0;
-            padding: 32px 16px;
-            font-family: "Segoe UI", Arial, sans-serif;
-            color: #222b45;
-            background: #f5f6fc;
-        }
-
-        .container {
-            max-width: 1050px;
-            margin: auto;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 16px;
-            margin-bottom: 28px;
-        }
-
-        h1 { margin: 0 0 8px; }
-
-        .muted { color: #707995; }
-
-        .button {
-            display: inline-block;
-            padding: 11px 16px;
-            border: 0;
-            border-radius: 10px;
-            background: #5266d8;
-            color: white;
-            font-weight: 700;
-            text-decoration: none;
-            cursor: pointer;
-        }
-
-        .trip-card {
-            background: white;
-            border: 1px solid #e5e8f2;
-            border-radius: 16px;
-            padding: 22px;
-            margin-bottom: 18px;
-            box-shadow: 0 8px 25px rgba(42, 53, 100, 0.06);
-        }
-
-        .route {
-            font-size: 19px;
-            font-weight: 800;
-            overflow-wrap: anywhere;
-            margin-bottom: 16px;
-        }
-
-        .details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 14px;
-            margin-bottom: 20px;
-        }
-
-        .detail {
-            padding: 13px;
-            background: #f7f8ff;
-            border-radius: 10px;
-        }
-
-        .label {
-            color: #707995;
-            font-size: 12px;
-            margin-bottom: 6px;
-        }
-
-        .value { font-weight: 700; }
-
-        .delete-button {
-            padding: 10px 14px;
-            border: 1px solid #ffd8de;
-            border-radius: 9px;
-            background: #fff0f2;
-            color: #a92e42;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .empty, .message {
-            padding: 24px;
-            background: white;
-            border: 1px solid #e5e8f2;
-            border-radius: 14px;
-            margin-bottom: 18px;
-        }
-
-        @media (max-width: 500px) {
-            .trip-card { padding: 16px; }
-            .header { align-items: flex-start; }
-        }
-    </style>
 </head>
 
 <body>

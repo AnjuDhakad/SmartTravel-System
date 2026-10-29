@@ -1,0 +1,131 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Search | Smart Travel</title>
+
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f8f5;
+            color: #29483b;
+        }
+
+        header {
+            background: #dcebe0;
+            padding: 24px 7%;
+        }
+
+        header h1 {
+            margin: 0 0 8px;
+        }
+
+        main {
+            max-width: 1000px;
+            margin: 35px auto;
+            padding: 0 20px;
+        }
+
+        .search-box,
+        .hotel-card {
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 18px #29483b10;
+        }
+
+        input,
+        button {
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #cbdacf;
+            font-size: 15px;
+        }
+
+        input {
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        button,
+        .book-btn {
+            display: inline-block;
+            background: #47785e;
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .hotel-card p {
+            color: #65786c;
+            line-height: 1.6;
+        }
+
+        .hotel-card h2 {
+            margin-top: 0;
+        }
+
+        .book-btn:hover,
+        button:hover {
+            background: #315a43;
+        }
+
+        .back {
+            color: #47785e;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>🏨 Find Your Stay</h1>
+        <p>Explore accommodation options for your next journey.</p>
+    </header>
+
+    <main>
+        <a class="back" href="javascript:history.back()">← Back</a>
+
+
+        <section class="search-box">
+            <h2>🏨 Hotels in {{ destination }}</h2>
+            <p>Explore accommodation options for your destination.</p>
+            <p>Passengers: {{ passengers|default:1 }}</p>
+        </section>
+
+        {% if hotels %}
+        <h2>Explore stays in {{ destination }}</h2>
+
+        {% for hotel in hotels %}
+        <article class="hotel-card">
+            <h2>{{ hotel.name }}</h2>
+            <p>{{ hotel.description }}</p>
+            <a class="book-btn" href="{{ hotel.url }}" target="_blank" rel="noopener noreferrer">Explore Options ↗</a>
+        </article>
+        {% endfor %}
+        {% elif destination %}
+        <p>Search for a destination to explore accommodation options.</p>
+        {% else %}
+        <section class="hotel-card">
+            <h2>Where are you travelling?</h2>
+            <p>Enter your destination above to explore hotel booking websites.</p>
+        </section>
+        {% endif %}
+    </main>
+</body>
+
+</html>

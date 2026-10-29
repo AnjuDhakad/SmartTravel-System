@@ -9,4 +9,7 @@ urlpatterns = [
     path("save-trip/", views.save_trip, name="save_trip"),
     path("saved-trips/", views.saved_trips, name="saved_trips"),
     path("saved-trips/<int:trip_id>/delete/", views.delete_saved_trip, name="delete_saved_trip"),
+    path("compare/", views.compare_routes, name="compare_routes"),
+    path("hotels/", views.hotel_booking, name="hotel_booking"),
+    path("hotels/", views.hotel_booking, name="hotel_booking"),
 ]

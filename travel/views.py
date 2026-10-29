@@ -1179,169 +1179,161 @@ def delete_saved_trip(request, trip_id):
 def book_ticket(request):
     source = request.GET.get("source", "").strip()
     destination = request.GET.get("destination", "").strip()
-    transport = request.GET.get("transport", "car").strip()
 
     try:
-        distance = float(
-            request.GET.get("distance_km", "")
-        )
-
-        passengers = int(
-            request.GET.get("passengers", "1")
-        )
+        distance = float(request.GET.get("distance_km", ""))
+        passengers = int(request.GET.get("passengers", "1"))
 
     except (ValueError, TypeError):
-        messages.error(
-            request,
-            "Please search for a route first.",
-        )
+        messages.error(request, "Please search for a route first.")
         return redirect("travel:travel_search")
 
     if (
         not source
         or not destination
         or source.casefold() == destination.casefold()
-        or transport not in ("car", "two_wheeler", "train")
         or not math.isfinite(distance)
         or not 0 < distance <= 100000
         or not 1 <= passengers <= 50
     ):
-        messages.error(
-            request,
-            "Please search for a valid route first.",
-        )
+        messages.error(request, "Please search for a valid route first.")
         return redirect("travel:travel_search")
 
-    providers = {
-        "car": [
-            {
-                "name": "Uber",
-                "description": "Explore cab rides",
-                "url": "https://www.uber.com/in/en/ride/",
-            },
-            {
-                "name": "Ola",
-                "description": "Explore cab options",
-                "url": "https://www.olacabs.com/",
-            },
-        ],
-        "two_wheeler": [
-            {
-                "name": "Rapido",
-                "description": "Check bike taxi availability",
-                "url": "https://www.rapido.bike/",
-            },
-            {
-                "name": "Uber",
-                "description": "Check available ride types",
-                "url": "https://www.uber.com/in/en/ride/",
-            },
-        ],
-        "train": [
-            {
-                "name": "IRCTC",
-                "description": "Check train schedules and booking",
-                "url": "https://www.irctc.co.in/",
-            },
-            {
-                "name": "ixigo",
-                "description": "Explore train options",
-                "url": "https://www.ixigo.com/trains",
-            },
-        ],
-    }
-
-    selected_transport = {
-        "car": "Car / Cab",
-        "two_wheeler": "Bike / Two-wheeler",
-        "train": "Train",
-    }[transport]
-
-    alternatives = [
-        {
+    # External booking websites for each transport mode.
+    transport_options = {
+        "two_wheeler": {
+            "name": "Bike / Two-wheeler",
+            "description": "A possible option for shorter journeys.",
+            "providers": [
+                {
+                    "name": "Rapido",
+                    "description": "Check bike taxi availability.",
+                    "url": "https://www.rapido.bike/",
+                },
+                {
+                    "name": "Uber",
+                    "description": "Explore available ride types.",
+                    "url": "https://www.uber.com/in/en/ride/",
+                },
+            ],
+        },
+        "car": {
+            "name": "Car / Cab",
+            "description": "Check cab services and available rides.",
+            "providers": [
+                {
+                    "name": "Uber",
+                    "description": "Explore cab rides.",
+                    "url": "https://www.uber.com/in/en/ride/",
+                },
+                {
+                    "name": "Ola",
+                    "description": "Explore cab options.",
+                    "url": "https://www.olacabs.com/",
+                },
+            ],
+        },
+        "bus": {
             "name": "Bus",
-            "description": "Explore intercity bus services",
+            "description": "Explore bus services for your journey.",
             "providers": [
                 {
                     "name": "redBus",
+                    "description": "Explore bus routes and booking.",
                     "url": "https://www.redbus.in/",
                 },
                 {
                     "name": "AbhiBus",
+                    "description": "Check available bus services.",
                     "url": "https://www.abhibus.com/",
                 },
             ],
         },
-        {
+        "train": {
             "name": "Train",
-            "description": "Check train routes and schedules",
-            "providers": providers["train"],
+            "description": "Check train routes and availability.",
+            "providers": [
+                {
+                    "name": "IRCTC",
+                    "description": "Official railway ticket booking.",
+                    "url": "https://www.irctc.co.in/",
+                },
+                {
+                    "name": "ixigo",
+                    "description": "Explore train options.",
+                    "url": "https://www.ixigo.com/trains",
+                },
+            ],
         },
-        {
+        "flight": {
             "name": "Flight",
-            "description": "Explore flight options",
+            "description": "Explore flights for your destination.",
             "providers": [
                 {
                     "name": "MakeMyTrip",
+                    "description": "Explore flight options.",
                     "url": "https://www.makemytrip.com/",
                 },
                 {
                     "name": "EaseMyTrip",
+                    "description": "Search available flights.",
                     "url": "https://www.easemytrip.com/",
                 },
             ],
         },
-    ]
+    }
 
-    alternatives.insert(
-        0,
-        {
-            "name": (
-                "Two-wheeler"
-                if transport == "car"
-                else "Car / Cab"
-            ),
-            "description": "An alternative for your journey",
-            "providers": (
-                providers["two_wheeler"]
-                if transport == "car"
-                else providers["car"]
-            ),
-        },
-    )
-
+    # Choose a suggested mode based on route distance.
+    # This is a heuristic, not a live fare or schedule comparison.
     if distance <= 10:
+        recommended_key = "two_wheeler"
         recommendation = (
-            "Compare available transport options before deciding "
-            "which is suitable for this short journey."
+            "For this short journey, a two-wheeler may be worth "
+            "considering. Check local availability and fares before deciding."
         )
+
     elif distance <= 100:
+        recommended_key = "car"
         recommendation = (
-            "Compare cab, train and bus availability, travel times "
-            "and prices before choosing your transport."
+            "For this journey, consider a car or cab for a direct trip. "
+            "Compare its fare and travel time with bus and train options."
         )
+
     else:
+        recommended_key = "train"
         recommendation = (
-            "For a longer journey, compare train and bus options. "
-            "Flights may also be worth checking where available."
+            "For this longer journey, train travel may be worth considering. "
+            "Compare available schedules and fares; a bus or flight may "
+            "also suit your needs."
         )
+
+    recommended_transport = transport_options[recommended_key]
+
+    # Show every remaining mode after the recommendation.
+    alternatives = [
+    option
+    for key, option in transport_options.items()
+    if key != recommended_key and key != "bus"
+]
+
+    context = {
+        "source": source,
+        "destination": destination,
+        "distance": distance,
+        "duration": request.GET.get("duration", "").strip(),
+        "passengers": passengers,
+        "travel_date": request.GET.get("date", "").strip(),
+        "travel_time": request.GET.get("time", "").strip(),
+
+        "recommended_transport": recommended_transport,
+        "recommendation": recommendation,
+        "alternatives": alternatives,
+    }
 
     return render(
         request,
         "booking_options.html",
-        {
-            "source": source,
-            "destination": destination,
-            "distance": distance,
-            "duration": request.GET.get("duration", "").strip(),
-            "passengers": passengers,
-            "travel_date": request.GET.get("date", "").strip(),
-            "travel_time": request.GET.get("time", "").strip(),
-            "selected_transport": selected_transport,
-            "selected_options": providers[transport],
-            "alternatives": alternatives,
-            "recommendation": recommendation,
-        },
+        context,
     )
 
 
@@ -1529,3 +1521,112 @@ def get_flight_routes(source, destination, travel_date):
         print("OAG flight request failed:", str(exc))
         return []
 
+def compare_routes(request):
+    return render(request, "compare.html")
+
+
+from urllib.parse import quote_plus
+from django.shortcuts import render
+
+
+def hotel_booking(request):
+    destination = request.GET.get("destination", "").strip()
+    passengers = request.GET.get("passengers", "1").strip()
+
+    try:
+        passengers = int(passengers)
+        if not 1 <= passengers <= 50:
+            passengers = 1
+    except (ValueError, TypeError):
+        passengers = 1
+
+    search_destination = quote_plus(destination)
+
+    hotels = []
+
+    if destination:
+        hotels = [
+            {
+                "name": f"Hotels in {destination}",
+                "description": (
+                    f"Explore hotels, guest ratings, prices "
+                    f"and amenities in {destination}."
+                ),
+                "booking_url": (
+                    "https://www.booking.com/searchresults.html"
+                    f"?ss={search_destination}"
+                    f"&group_adults={passengers}&no_rooms=1"
+                ),
+                "google_url": (
+                    "https://www.google.com/travel/hotels"
+                    f"?q={search_destination}"
+                ),
+            },
+            {
+                "name": f"Accommodation in {destination}",
+                "description": (
+                    "Compare accommodation options and "
+                    "check availability on a travel website."
+                ),
+                "booking_url": (
+                    "https://www.makemytrip.com/hotels/"
+                ),
+                "google_url": (
+                    "https://www.agoda.com/"
+                ),
+            },
+        ]
+
+    return render(
+        request,
+        "hotel_booking.html",
+        {
+            "destination": destination,
+            "passengers": passengers,
+            "hotels": hotels,
+        },
+    )
+
+
+
+from urllib.parse import quote_plus
+from django.shortcuts import render
+
+
+def hotel_booking(request):
+    destination = request.GET.get("destination", "").strip()
+    passengers = request.GET.get("passengers", "1")
+
+    try:
+        passengers = max(1, min(int(passengers), 50))
+    except (ValueError, TypeError):
+        passengers = 1
+
+    query = quote_plus(destination)
+
+    hotels = []
+
+    if destination:
+        hotels = [
+            {
+                "name": "Booking.com",
+                "description": "Explore hotels, photos, prices and guest reviews.",
+                "url": f"https://www.booking.com/searchresults.html?ss={query}",
+            },
+            {
+                "name": "MakeMyTrip",
+                "description": "Compare hotel options for your destination.",
+                "url": f"https://www.makemytrip.com/hotels/",
+            },
+            {
+                "name": "Google Hotels",
+                "description": "Discover hotels and compare available options.",
+                "url": f"https://www.google.com/travel/hotels?q={query}",
+            },
+        ]
+
+    return render(request, "hotel_booking.html", {
+        "destination": destination,
+        "passengers": passengers,
+        "hotels": hotels,
+    })
