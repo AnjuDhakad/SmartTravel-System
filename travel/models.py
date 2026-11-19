@@ -12,6 +12,7 @@ class SavedTrip(models.Model):
     destination = models.CharField(max_length=255)
     travel_date = models.DateField(null=True, blank=True)
     travel_time = models.TimeField(null=True, blank=True)
+    travel_time_to = models.TimeField(null=True, blank=True)
     passengers = models.PositiveSmallIntegerField(default=1)
     transport = models.CharField(max_length=30)
     distance_km = models.DecimalField(

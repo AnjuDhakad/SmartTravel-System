@@ -4,26 +4,119 @@ import requests
 
 from datetime import date, time
 from decimal import Decimal, InvalidOperation
+from urllib.parse import quote_plus
 
 from django.conf import settings
 from django.core.cache import cache
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
 from .models import SavedTrip
 from .routes import RouteAPIError, calculate_google_route
 
-import requests
-from django.conf import settings
-from django.http import JsonResponse
 
 RAILRADAR_BASE_URL = "https://api.railradar.in/v1"
 
-# Cache durations in seconds
 STATION_CACHE_TTL = 60 * 60 * 24
 TRAIN_CACHE_TTL = 60 * 60
 GEOMETRY_CACHE_TTL = 60 * 60 * 24
+
+
+# =========================================================
+# TRANSPORT DISTANCE RULES
+# =========================================================
+
+def get_allowed_transports(distance):
+    """
+    Return available transport modes according to distance.
+
+    Walking: up to 5 km
+    Bicycle: up to 20 km
+    Train: 30 km and above
+    Flight: 300 km and above
+
+    Car and two-wheeler remain available as before.
+    """
+
+    try:
+        distance = float(distance)
+
+        if not math.isfinite(distance) or distance <= 0:
+            return []
+
+    except (TypeError, ValueError):
+        return []
+
+    allowed = ["car", "two_wheeler"]
+
+    if distance <= 5:
+        allowed.append("walking")
+
+    if distance <= 20:
+        allowed.append("bicycle")
+
+    if distance >= 30:
+        allowed.append("train")
+
+    if distance >= 300:
+        allowed.append("flight")
+
+    return allowed
+
+
+def is_transport_allowed(transport, distance):
+    return transport in get_allowed_transports(distance)
+
+
+# =========================================================
+# DATE AND TIME VALIDATION HELPERS
+# =========================================================
+
+def validate_travel_date(value):
+    """
+    Past dates are not allowed.
+    Today and future dates are allowed.
+    """
+
+    if not value:
+        return None, "Please select your travel date."
+
+    try:
+        travel_date = date.fromisoformat(value)
+    except (ValueError, TypeError):
+        return None, "Please enter a valid travel date."
+
+    today = timezone.localdate()
+
+    if travel_date < today:
+        return None, "Past travel dates are not allowed."
+
+    return travel_date, ""
+
+
+def validate_time_range(time_from, time_to):
+    """
+    Validate selected time range.
+    End time must be later than start time.
+    """
+
+    if not time_from or not time_to:
+        return None, None, "Please select both starting and ending times."
+
+    try:
+        start_time = time.fromisoformat(time_from)
+        end_time = time.fromisoformat(time_to)
+
+    except (ValueError, TypeError):
+        return None, None, "Please enter a valid time range."
+
+    if end_time <= start_time:
+        return None, None, "End time must be later than start time."
+
+    return start_time, end_time, ""
 
 
 # =========================================================
@@ -52,7 +145,6 @@ def _railradar_cache_key(path, params=None):
 def railradar_get(path, params=None):
     """
     Fetch RailRadar data with caching.
-    Successful responses are cached to reduce API usage.
     """
 
     api_key = getattr(settings, "TRAIN_API_KEY", "")
@@ -63,6 +155,7 @@ def railradar_get(path, params=None):
         )
 
     params = params or {}
+
     cache_key = _railradar_cache_key(path, params)
 
     cached_data = cache.get(cache_key)
@@ -106,8 +199,10 @@ def railradar_get(path, params=None):
 
     if path.startswith("/lookup/search/stations"):
         timeout = STATION_CACHE_TTL
+
     elif "/route" in path:
         timeout = GEOMETRY_CACHE_TTL
+
     else:
         timeout = TRAIN_CACHE_TTL
 
@@ -181,7 +276,6 @@ def find_station(location):
     query = _norm(location)
     station = None
 
-    # Exact name/code/city match first.
     for item in data:
         if not isinstance(item, dict):
             continue
@@ -197,7 +291,6 @@ def find_station(location):
             station = item
             break
 
-    # Prefer exact city match.
     if station is None:
         for item in data:
             if (
@@ -207,7 +300,6 @@ def find_station(location):
                 station = item
                 break
 
-    # Use provider's first result as a last resort.
     if station is None:
         station = next(
             (
@@ -499,7 +591,6 @@ def clip_train_geometry(
     if start is None or end is None or start == end:
         return ""
 
-    # Keep geometry in the order travelled.
     if source_index > destination_index:
         start, end = end, start
 
@@ -535,10 +626,6 @@ def _format_duration(minutes):
 # =========================================================
 
 def get_train_routes(source, destination, travel_date=""):
-    """
-    Train search is cached by station pair and travel date.
-    Only the first three train options are processed.
-    """
 
     result_key_raw = (
         f"{_norm(source)}|"
@@ -605,7 +692,6 @@ def get_train_routes(source, destination, travel_date=""):
 
         options = []
 
-        # Do not fetch geometry for every train.
         for item in trains[:3]:
             if not isinstance(item, dict):
                 continue
@@ -623,8 +709,6 @@ def get_train_routes(source, destination, travel_date=""):
             if not number:
                 continue
 
-            # Geometry is optional. Keep train results even if
-            # geometry is rate-limited or unavailable.
             geometry = {}
 
             try:
@@ -655,7 +739,7 @@ def get_train_routes(source, destination, travel_date=""):
 
                 if (
                     not math.isfinite(distance)
-                    or distance <= 0
+                    or distance < 30
                     or duration_minutes <= 0
                 ):
                     continue
@@ -666,7 +750,7 @@ def get_train_routes(source, destination, travel_date=""):
             departure = from_info.get("departure") or ""
             arrival = to_info.get("arrival") or ""
             train_name = train.get("name") or "Train"
-            
+
             estimated_fare = None
 
             if travel_date:
@@ -685,9 +769,6 @@ def get_train_routes(source, destination, travel_date=""):
                     fare_data = fare_result.get("data", fare_result)
                     breakdown = fare_data.get("breakdown", {})
                     estimated_fare = breakdown.get("totalFare")
-
-                    print(f"Train {number} fare response: {fare_result}")
-                    print(f"Train {number} extracted fare: {estimated_fare}")
 
                 except (
                     requests.RequestException,
@@ -725,16 +806,18 @@ def get_train_routes(source, destination, travel_date=""):
 
         if options:
             result_to_cache = (options, "")
+
             cache.set(
                 result_key,
                 result_to_cache,
                 TRAIN_CACHE_TTL,
             )
+
             return result_to_cache
 
         return [], (
-            "RailRadar returned no usable train options. "
-            "Try checking the station names."
+            "No eligible train options found. "
+            "Train routes are shown for journeys of 30 km or more."
         )
 
     except requests.HTTPError as exc:
@@ -798,10 +881,14 @@ def get_road_routes(source, destination):
 
     options = []
 
-    for mode, label, google_mode in (
+    route_modes = (
         ("car", "Car", "DRIVE"),
         ("two_wheeler", "Two-wheeler", "TWO_WHEELER"),
-    ):
+        ("walking", "Walking", "WALK"),
+        ("bicycle", "Bicycle", "BICYCLE"),
+    )
+
+    for mode, label, google_mode in route_modes:
         try:
             response = requests.post(
                 endpoint,
@@ -818,7 +905,8 @@ def get_road_routes(source, destination):
                 print(
                     f"{label} route failed:",
                     response.status_code,
-                    response.text[:500],)
+                    response.text[:500],
+                )
                 continue
 
             payload = response.json()
@@ -853,13 +941,24 @@ def get_road_routes(source, destination):
                 math.ceil(duration_seconds / 60),
             )
 
+            # Apply walking and bicycle distance limits.
+            if mode == "walking" and distance_km > 5:
+                continue
+
+            if mode == "bicycle" and distance_km > 20:
+                continue
+
             options.append({
                 "mode": mode,
                 "label": label,
                 "distance_km": distance_km,
                 "duration": _format_duration(duration_minutes),
                 "polyline": encoded,
-                "estimated_fare": round(distance_km * 12),
+                "estimated_fare": (
+                    round(distance_km * 12)
+                    if mode in ("car", "two_wheeler")
+                    else 0
+                ),
             })
 
         except (
@@ -877,18 +976,19 @@ def get_road_routes(source, destination):
         )
 
     return options, ""
-
-
 # =========================================================
 # SEARCH ROUTES VIEW
 # =========================================================
 
 def travel_search(request):
+
     form_data = {
         "source": "",
         "destination": "",
         "date": "",
         "time": "",
+        "time_from": "",
+        "time_to": "",
         "passengers": "1",
     }
 
@@ -913,6 +1013,10 @@ def travel_search(request):
             form_data[field],
         ).strip()
 
+    # Backward compatibility with the old time field.
+    if not form_data["time_from"] and form_data["time"]:
+        form_data["time_from"] = form_data["time"]
+
     context["form_data"] = form_data
 
     source = form_data["source"]
@@ -930,6 +1034,26 @@ def travel_search(request):
         )
         return render(request, "travel_search.html", context)
 
+    # Validate travel date.
+    travel_date, date_error = validate_travel_date(
+        form_data["date"]
+    )
+
+    if date_error:
+        context["error"] = date_error
+        return render(request, "travel_search.html", context)
+
+    # Validate time range.
+    start_time, end_time, time_error = validate_time_range(
+        form_data["time_from"],
+        form_data["time_to"],
+    )
+
+    if time_error:
+        context["error"] = time_error
+        return render(request, "travel_search.html", context)
+
+    # Validate passengers.
     try:
         passengers = int(form_data["passengers"])
 
@@ -942,44 +1066,69 @@ def travel_search(request):
         )
         return render(request, "travel_search.html", context)
 
-    # Get road routes
+    # Get road routes.
     road_options, road_error = get_road_routes(
         source,
         destination,
     )
 
-    # Get train routes
+    # Get train routes.
     train_options, train_error = get_train_routes(
         source,
         destination,
         form_data["date"],
     )
 
-    # Get flight routes (optional)
+    # Get flight routes.
     flight_options = get_flight_routes(
         source,
         destination,
         form_data["date"],
     )
 
-    # Combine all available route options
+    # Filter train options using distance rules.
+    train_options = [
+        route for route in train_options
+        if is_transport_allowed(
+            "train",
+            route.get("distance_km", 0),
+        )
+    ]
+
+    # Filter flight options using distance rules.
+    flight_options = [
+        route for route in flight_options
+        if is_transport_allowed(
+            "flight",
+            route.get("distance_km", 0),
+        )
+    ]
+
+    # Combine available options.
     route_options = (
         road_options
         + train_options
         + flight_options
     )
 
+    # Remove any route that violates distance rules.
+    route_options = [
+        route for route in route_options
+        if is_transport_allowed(
+            route.get("mode"),
+            route.get("distance_km", 0),
+        )
+    ]
+
     print("TOTAL ROUTES:", len(route_options))
-    print("FLIGHT ROUTES IN VIEW:", [
-        r for r in route_options if r.get("mode") == "flight"
-    ])
 
     if not route_options:
         context["error"] = (
             road_error
             or train_error
-            or "No routes were returned for these locations."
+            or "No eligible routes were found for these locations."
         )
+
         context["notice"] = train_error or ""
 
         return render(
@@ -988,11 +1137,10 @@ def travel_search(request):
             context,
         )
 
-    # Select a default route
+    # Select default route.
     selected = next(
         (
-            route
-            for route in route_options
+            route for route in route_options
             if route["mode"] == "car"
         ),
         route_options[0],
@@ -1000,24 +1148,28 @@ def travel_search(request):
 
     context["route_options"] = route_options
 
+    selected_fare = selected.get("estimated_fare")
+
     context["route_data"] = {
         "source": source,
         "destination": destination,
         "distance_km": selected.get("distance_km"),
         "duration": selected.get("duration", ""),
         "date": form_data["date"],
-        "time": form_data["time"],
+        "time": form_data["time_from"],
+        "time_from": form_data["time_from"],
+        "time_to": form_data["time_to"],
         "passengers": passengers,
         "transport": selected["mode"],
         "polyline": selected.get("polyline", ""),
         "estimated_total_fare_raw": (
-            selected["estimated_fare"]
-            if selected.get("estimated_fare") is not None
+            selected_fare
+            if selected_fare is not None
             else 0
         ),
         "estimated_total_fare": (
-            f'{selected["estimated_fare"]:,}'
-            if selected.get("estimated_fare") is not None
+            f"{selected_fare:,}"
+            if selected_fare is not None
             else "Unavailable"
         ),
         "train_number": selected.get("train_number", ""),
@@ -1029,7 +1181,7 @@ def travel_search(request):
 
     if not train_options and train_error:
         context["notice"] = (
-            "Road or flight routes loaded. Train results unavailable: "
+            "Other routes loaded. Train results unavailable: "
             + train_error
         )
 
@@ -1045,12 +1197,14 @@ def travel_search(request):
         context,
     )
 
+
 # =========================================================
 # SAVE TRIP
 # =========================================================
 
 @login_required
 def save_trip(request):
+
     if request.method != "POST":
         return redirect("travel:travel_search")
 
@@ -1058,6 +1212,17 @@ def save_trip(request):
     destination = request.POST.get("destination", "").strip()
     transport = request.POST.get("transport", "car").strip()
     duration = request.POST.get("duration", "").strip()
+
+    time_from_value = (
+        request.POST.get("time_from")
+        or request.POST.get("time")
+        or ""
+    ).strip()
+
+    time_to_value = request.POST.get(
+        "time_to",
+        "",
+    ).strip()
 
     try:
         passengers = int(
@@ -1072,26 +1237,29 @@ def save_trip(request):
             request.POST.get("estimated_total_fare", "0") or "0"
         )
 
-        travel_date = (
-            date.fromisoformat(request.POST["date"])
-            if request.POST.get("date")
-            else None
+        travel_date, date_error = validate_travel_date(
+            request.POST.get("date", "")
         )
 
-        travel_time = (
-            time.fromisoformat(request.POST["time"])
-            if request.POST.get("time")
-            else None
+        if date_error:
+            raise ValueError(date_error)
+
+        start_time, end_time, time_error = validate_time_range(
+            time_from_value,
+            time_to_value,
         )
+
+        if time_error:
+            raise ValueError(time_error)
 
     except (
         ValueError,
         TypeError,
         InvalidOperation,
-    ):
+    ) as exc:
         messages.error(
             request,
-            "Invalid trip details. Please try again.",
+            str(exc) or "Invalid trip details. Please try again.",
         )
         return redirect("travel:travel_search")
 
@@ -1099,16 +1267,16 @@ def save_trip(request):
         not source
         or not destination
         or source.casefold() == destination.casefold()
-        or transport not in ("car", "two_wheeler", "train", "flight")
         or not 1 <= passengers <= 50
         or not distance.is_finite()
         or not Decimal("0") < distance <= Decimal("100000")
         or fare < 0
         or not duration
+        or not is_transport_allowed(transport, distance)
     ):
         messages.error(
             request,
-            "Please check your trip details.",
+            "Please check your trip details and transport distance eligibility.",
         )
         return redirect("travel:travel_search")
 
@@ -1117,7 +1285,8 @@ def save_trip(request):
         source=source,
         destination=destination,
         travel_date=travel_date,
-        travel_time=travel_time,
+        travel_time=start_time,
+        travel_time_to=end_time,
         passengers=passengers,
         transport=transport,
         distance_km=distance,
@@ -1129,6 +1298,7 @@ def save_trip(request):
         request,
         "Trip saved successfully!",
     )
+
     return redirect("travel:saved_trips")
 
 
@@ -1138,6 +1308,7 @@ def save_trip(request):
 
 @login_required
 def saved_trips(request):
+
     trips = SavedTrip.objects.filter(
         user=request.user
     )
@@ -1155,7 +1326,9 @@ def saved_trips(request):
 
 @login_required
 def delete_saved_trip(request, trip_id):
+
     if request.method == "POST":
+
         trip = get_object_or_404(
             SavedTrip,
             id=trip_id,
@@ -1177,15 +1350,25 @@ def delete_saved_trip(request, trip_id):
 # =========================================================
 
 def book_ticket(request):
+
     source = request.GET.get("source", "").strip()
     destination = request.GET.get("destination", "").strip()
+    transport = request.GET.get("transport", "").strip()
 
     try:
-        distance = float(request.GET.get("distance_km", ""))
-        passengers = int(request.GET.get("passengers", "1"))
+        distance = float(
+            request.GET.get("distance_km", "")
+        )
+
+        passengers = int(
+            request.GET.get("passengers", "1")
+        )
 
     except (ValueError, TypeError):
-        messages.error(request, "Please search for a route first.")
+        messages.error(
+            request,
+            "Please search for a route first.",
+        )
         return redirect("travel:travel_search")
 
     if (
@@ -1195,15 +1378,58 @@ def book_ticket(request):
         or not math.isfinite(distance)
         or not 0 < distance <= 100000
         or not 1 <= passengers <= 50
+        or not is_transport_allowed(transport, distance)
     ):
-        messages.error(request, "Please search for a valid route first.")
+        messages.error(
+            request,
+            "Please search for a valid and eligible route first.",
+        )
         return redirect("travel:travel_search")
 
-    # External booking websites for each transport mode.
+    travel_date = request.GET.get("date", "").strip()
+
+    travel_date_obj, date_error = validate_travel_date(
+        travel_date
+    )
+
+    if date_error:
+        messages.error(request, date_error)
+        return redirect("travel:travel_search")
+
+    time_from_value = (
+        request.GET.get("time_from")
+        or request.GET.get("time")
+        or ""
+    ).strip()
+
+    time_to_value = request.GET.get(
+        "time_to",
+        "",
+    ).strip()
+
+    start_time, end_time, time_error = validate_time_range(
+        time_from_value,
+        time_to_value,
+    )
+
+    if time_error:
+        messages.error(request, time_error)
+        return redirect("travel:travel_search")
+
     transport_options = {
+        "walking": {
+            "name": "Walking",
+            "description": "Suitable for short journeys up to 5 km.",
+            "providers": [],
+        },
+        "bicycle": {
+            "name": "Bicycle",
+            "description": "Suitable for journeys up to 20 km.",
+            "providers": [],
+        },
         "two_wheeler": {
             "name": "Bike / Two-wheeler",
-            "description": "A possible option for shorter journeys.",
+            "description": "Check local bike taxi availability.",
             "providers": [
                 {
                     "name": "Rapido",
@@ -1233,25 +1459,9 @@ def book_ticket(request):
                 },
             ],
         },
-        "bus": {
-            "name": "Bus",
-            "description": "Explore bus services for your journey.",
-            "providers": [
-                {
-                    "name": "redBus",
-                    "description": "Explore bus routes and booking.",
-                    "url": "https://www.redbus.in/",
-                },
-                {
-                    "name": "AbhiBus",
-                    "description": "Check available bus services.",
-                    "url": "https://www.abhibus.com/",
-                },
-            ],
-        },
         "train": {
             "name": "Train",
-            "description": "Check train routes and availability.",
+            "description": "Available for journeys of 30 km or more.",
             "providers": [
                 {
                     "name": "IRCTC",
@@ -1267,7 +1477,7 @@ def book_ticket(request):
         },
         "flight": {
             "name": "Flight",
-            "description": "Explore flights for your destination.",
+            "description": "Available for journeys of 300 km or more.",
             "providers": [
                 {
                     "name": "MakeMyTrip",
@@ -1283,38 +1493,21 @@ def book_ticket(request):
         },
     }
 
-    # Choose a suggested mode based on route distance.
-    # This is a heuristic, not a live fare or schedule comparison.
-    if distance <= 10:
-        recommended_key = "two_wheeler"
-        recommendation = (
-            "For this short journey, a two-wheeler may be worth "
-            "considering. Check local availability and fares before deciding."
-        )
+    recommended_transport = transport_options[transport]
 
-    elif distance <= 100:
-        recommended_key = "car"
-        recommendation = (
-            "For this journey, consider a car or cab for a direct trip. "
-            "Compare its fare and travel time with bus and train options."
-        )
-
-    else:
-        recommended_key = "train"
-        recommendation = (
-            "For this longer journey, train travel may be worth considering. "
-            "Compare available schedules and fares; a bus or flight may "
-            "also suit your needs."
-        )
-
-    recommended_transport = transport_options[recommended_key]
-
-    # Show every remaining mode after the recommendation.
     alternatives = [
-    option
-    for key, option in transport_options.items()
-    if key != recommended_key and key != "bus"
-]
+        option
+        for key, option in transport_options.items()
+        if (
+            key != transport
+            and key in get_allowed_transports(distance)
+        )
+    ]
+
+    recommendation = (
+        f"{recommended_transport['name']} selected for "
+        f"your {distance:.2f} km journey."
+    )
 
     context = {
         "source": source,
@@ -1322,9 +1515,10 @@ def book_ticket(request):
         "distance": distance,
         "duration": request.GET.get("duration", "").strip(),
         "passengers": passengers,
-        "travel_date": request.GET.get("date", "").strip(),
-        "travel_time": request.GET.get("time", "").strip(),
-
+        "travel_date": travel_date,
+        "travel_time": time_from_value,
+        "time_from": time_from_value,
+        "time_to": time_to_value,
         "recommended_transport": recommended_transport,
         "recommendation": recommendation,
         "alternatives": alternatives,
@@ -1335,298 +1529,297 @@ def book_ticket(request):
         "booking_options.html",
         context,
     )
-
-
 # =========================================================
-# OAG FLIGHT API
+# PART 3/3 - FLIGHT ROUTES, COMPARE ROUTES & HOTEL BOOKING
 # =========================================================
 
 AIRPORT_CODES = {
+    "bhopal": "BHO",
+    "raja bhoj airport": "BHO",
     "delhi": "DEL",
     "new delhi": "DEL",
     "mumbai": "BOM",
     "bombay": "BOM",
-    "bhopal": "BHO",
-    "indore": "IDR",
-    "jabalpur": "JLR",
-    "raipur": "RPR",
-    "ujjain": "IDR",
-    "pune": "PNQ",
-    "bengaluru": "BLR",
     "bangalore": "BLR",
+    "bengaluru": "BLR",
     "hyderabad": "HYD",
     "chennai": "MAA",
     "kolkata": "CCU",
+    "pune": "PNQ",
+    "indore": "IDR",
     "jaipur": "JAI",
     "lucknow": "LKO",
     "ahmedabad": "AMD",
     "goa": "GOI",
-    "nagpur": "NAG",
-    "patna": "PAT",
     "varanasi": "VNS",
-    "chandigarh": "IXC",
+    "patna": "PAT",
+    "nagpur": "NAG",
     "kochi": "COK",
     "cochin": "COK",
     "srinagar": "SXR",
-    "amritsar": "ATQ",
+    "chandigarh": "IXC",
 }
 
 
-def _get_airport_code(location):
-    location = str(location or "").strip()
+def _get_airport_code(city):
+    if not city:
+        return None
 
-    # Allow users to enter an airport IATA code directly.
-    if len(location) == 3 and location.isalpha():
-        return location.upper()
+    city_name = city.strip().lower()
 
-    return AIRPORT_CODES.get(location.casefold())
+    if city_name in AIRPORT_CODES:
+        return AIRPORT_CODES[city_name]
+
+    return None
 
 
-def get_flight_routes(source, destination, travel_date):
+def get_flight_routes(source, destination, travel_date=""):
     """
-    Fetch scheduled flights from OAG.
-    Source and destination must be airport cities or IATA codes.
+    Returns flight search information.
+    Flights are considered only for routes of 300 km or more.
     """
-
-    api_key = getattr(settings, "OAG_API_KEY", "")
-
-    if not api_key or not travel_date:
-        return []
 
     source_code = _get_airport_code(source)
     destination_code = _get_airport_code(destination)
 
-    # OAG needs airport codes, not street addresses.
     if not source_code or not destination_code:
         return []
 
-    if source_code == destination_code:
+    api_key = getattr(settings, "OAG_API_KEY", None)
+    api_url = getattr(settings, "OAG_API_URL", None)
+
+    if not api_key or not api_url:
         return []
 
-    url = "https://api.oag.com/flight-instances"
-
-    params = {
-        "version": "v2",
-        "DepartureAirport": source_code,
-        "ArrivalAirport": destination_code,
-        "DepartureDateTime": travel_date,
-        "CodeType": "IATA",
-        "Limit": 10,
-    }
-
     headers = {
-        "Subscription-Key": api_key,
+        "X-API-Key": api_key,
         "Accept": "application/json",
     }
 
+    params = {
+        "departureAirport": source_code,
+        "arrivalAirport": destination_code,
+    }
+
+    if travel_date:
+        params["departureDate"] = travel_date
+
     try:
         response = requests.get(
-            url,
-            params=params,
+            api_url,
             headers=headers,
-            timeout=20,
+            params=params,
+            timeout=15,
         )
+
         response.raise_for_status()
-        print("OAG STATUS:", response.status_code)
-        print("OAG RESPONSE:", response.text[:2000])
+        data = response.json()
 
-        payload = response.json()
-        print("OAG DATA TYPE:", type(payload.get("data")))
-        print("OAG DATA:", str(payload.get("data"))[:1500])
+        if isinstance(data, dict):
+            flights = (
+                data.get("data")
+                or data.get("flights")
+                or data.get("results")
+                or []
+            )
+        elif isinstance(data, list):
+            flights = data
+        else:
+            flights = []
 
-        flights = payload.get("data", [])
-
-        payload = response.json()
-        flights = payload.get("data", [])
-
-        if not isinstance(flights, list):
-            return []
-
-        flight_options = []
+        route_options = []
 
         for flight in flights:
-            if not isinstance(flight, dict):
-                continue
-
-            departure = flight.get("departure") or {}
-            arrival = flight.get("arrival") or {}
-            carrier = flight.get("carrier") or {}
-
-            departure_airport = (
-                departure.get("airport") or {}
+            distance = (
+                flight.get("distance")
+                or flight.get("distanceKm")
+                or flight.get("accumulatedGreatCircleKilometers")
             )
-            arrival_airport = (
-                arrival.get("airport") or {}
-            )
-            departure_time = (
-                departure.get("time") or {}
-            )
-            arrival_time = (
-                arrival.get("time") or {}
-            )
-            segment_info = (
-                flight.get("segmentInfo") or {}
-            )
-            distance_info = (
-                flight.get("distance") or {}
-            )
-
-            duration_minutes = flight.get("elapsedTime")
 
             try:
-                duration_minutes = int(duration_minutes)
-                if duration_minutes <= 0:
-                    continue
+                distance = float(distance)
             except (TypeError, ValueError):
                 continue
 
-            airline = carrier.get("iata") or "Unknown"
-            flight_number = flight.get("flightNumber")
+            if not math.isfinite(distance) or distance < 300:
+                continue
 
-            flight_options.append({
+            duration = (
+                flight.get("duration")
+                or flight.get("flightDuration")
+                or "Check airline"
+            )
+
+            fare = flight.get("fare") or flight.get("price") or 0
+
+            try:
+                fare = int(float(fare))
+            except (TypeError, ValueError):
+                fare = 0
+
+            route_options.append({
                 "mode": "flight",
-                "label": f"{airline} {flight_number or ''}".strip(),
-                "airline": airline,
-                "flight_number": flight_number,
-                "source": departure_airport.get("iata", source_code),
-                "destination": arrival_airport.get("iata", destination_code),
-                "departure": departure_time.get("local", ""),
-                "arrival": arrival_time.get("local", ""),
-                "departure_time": departure_time.get("local", ""),
-                "arrival_time": arrival_time.get("local", ""),
-                "schedule": (
-                    f"Departure: {departure_time.get('local', 'N/A')} · "
-                    f"Arrival: {arrival_time.get('local', 'N/A')}"
-                ),
-                "distance_km": distance_info.get(
-                    "accumulatedGreatCircleKilometers"
-                ),
-                "duration": _format_duration(duration_minutes),
-                "duration_minutes": duration_minutes,
-                "stops": segment_info.get("numberOfStops"),
-                "polyline": "",
-                "estimated_fare": None,
+                "transport": "flight",
+                "transport_name": "Flight",
+                "distance_km": round(distance, 2),
+                "duration": str(duration),
+                "fare": fare,
+                "estimated_total_fare": fare,
+                "airline": flight.get("airline", "Available Airlines"),
+                "flight_number": flight.get("flightNumber", ""),
+                "departure_time": flight.get("departureTime", ""),
+                "arrival_time": flight.get("arrivalTime", ""),
             })
 
-            print("FLIGHT OPTIONS COUNT:", len(flight_options))
-            print("FLIGHT OPTIONS:", flight_options)
-            
-        return flight_options
+        return route_options[:5]
 
-    except (
-        requests.RequestException,
-        ValueError,
-        TypeError,
-    ) as exc:
-        print("OAG flight request failed:", str(exc))
+    except requests.RequestException as error:
+        print("OAG Flight API Error:", error)
         return []
 
+    except (ValueError, TypeError, KeyError) as error:
+        print("Flight Data Error:", error)
+        return []
+
+
+# =========================================================
+# COMPARE ROUTES
+# =========================================================
+
+@login_required
 def compare_routes(request):
-    return render(request, "compare.html")
 
-
-from urllib.parse import quote_plus
-from django.shortcuts import render
-
-
-def hotel_booking(request):
+    source = request.GET.get("source", "").strip()
     destination = request.GET.get("destination", "").strip()
-    passengers = request.GET.get("passengers", "1").strip()
+
+    distance = request.GET.get("distance", "0")
 
     try:
-        passengers = int(passengers)
-        if not 1 <= passengers <= 50:
-            passengers = 1
+        distance = float(distance)
     except (ValueError, TypeError):
-        passengers = 1
+        distance = 0
 
-    search_destination = quote_plus(destination)
+    if distance <= 0:
+        messages.error(request, "Please enter a valid route distance.")
+        return redirect("travel:travel_search")
 
-    hotels = []
+    allowed_transports = get_allowed_transports(distance)
 
-    if destination:
-        hotels = [
-            {
-                "name": f"Hotels in {destination}",
-                "description": (
-                    f"Explore hotels, guest ratings, prices "
-                    f"and amenities in {destination}."
-                ),
-                "booking_url": (
-                    "https://www.booking.com/searchresults.html"
-                    f"?ss={search_destination}"
-                    f"&group_adults={passengers}&no_rooms=1"
-                ),
-                "google_url": (
-                    "https://www.google.com/travel/hotels"
-                    f"?q={search_destination}"
-                ),
-            },
-            {
-                "name": f"Accommodation in {destination}",
-                "description": (
-                    "Compare accommodation options and "
-                    "check availability on a travel website."
-                ),
-                "booking_url": (
-                    "https://www.makemytrip.com/hotels/"
-                ),
-                "google_url": (
-                    "https://www.agoda.com/"
-                ),
-            },
-        ]
+    transport_details = {
+        "walking": {
+            "name": "Walking",
+            "description": "Suitable for short-distance travel.",
+        },
+        "bicycle": {
+            "name": "Bicycle",
+            "description": "Suitable for routes up to 20 km.",
+        },
+        "two_wheeler": {
+            "name": "Two-wheeler",
+            "description": "A convenient option for road travel.",
+        },
+        "car": {
+            "name": "Car",
+            "description": "Comfortable road transportation.",
+        },
+        "train": {
+            "name": "Train",
+            "description": "Available for routes of 30 km or more.",
+        },
+        "flight": {
+            "name": "Flight",
+            "description": "Available for routes of 300 km or more.",
+        },
+    }
+
+    comparison = []
+
+    for transport in allowed_transports:
+        details = transport_details.get(transport)
+
+        if details:
+            comparison.append({
+                "transport": transport,
+                "name": details["name"],
+                "description": details["description"],
+            })
+
+    context = {
+        "source": source,
+        "destination": destination,
+        "distance": round(distance, 2),
+        "comparison": comparison,
+    }
 
     return render(
         request,
-        "hotel_booking.html",
-        {
-            "destination": destination,
-            "passengers": passengers,
-            "hotels": hotels,
-        },
+        "travel/compare_routes.html",
+        context
     )
 
 
+# =========================================================
+# HOTEL BOOKING
+# =========================================================
 
-from urllib.parse import quote_plus
-from django.shortcuts import render
-
-
+@login_required
 def hotel_booking(request):
-    destination = request.GET.get("destination", "").strip()
-    passengers = request.GET.get("passengers", "1")
 
-    try:
-        passengers = max(1, min(int(passengers), 50))
-    except (ValueError, TypeError):
-        passengers = 1
+    destination = request.GET.get(
+        "destination",
+        ""
+    ).strip()
 
-    query = quote_plus(destination)
+    if not destination:
+        destination = request.POST.get(
+            "destination",
+            ""
+        ).strip()
 
-    hotels = []
+    if not destination:
+        messages.warning(
+            request,
+            "Please select a destination first."
+        )
 
-    if destination:
-        hotels = [
-            {
-                "name": "Booking.com",
-                "description": "Explore hotels, photos, prices and guest reviews.",
-                "url": f"https://www.booking.com/searchresults.html?ss={query}",
-            },
-            {
-                "name": "MakeMyTrip",
-                "description": "Compare hotel options for your destination.",
-                "url": f"https://www.makemytrip.com/hotels/",
-            },
-            {
-                "name": "Google Hotels",
-                "description": "Discover hotels and compare available options.",
-                "url": f"https://www.google.com/travel/hotels?q={query}",
-            },
-        ]
+        return redirect("travel:travel_search")
 
-    return render(request, "hotel_booking.html", {
+    encoded_destination = quote_plus(destination)
+
+    hotels = [
+        {
+            "name": "Booking.com",
+            "description": "Explore hotels and accommodation options.",
+            "url": (
+                "https://www.booking.com/searchresults.html"
+                f"?ss={encoded_destination}"
+            ),
+        },
+        {
+            "name": "MakeMyTrip",
+            "description": "Find hotels and compare available prices.",
+            "url": (
+                "https://www.makemytrip.com/hotels/"
+                f"hotel-listing/?city={encoded_destination}"
+            ),
+        },
+        {
+            "name": "Google Hotels",
+            "description": "Compare hotel options from different providers.",
+            "url": (
+                "https://www.google.com/travel/search"
+                f"?q=hotels%20in%20{encoded_destination}"
+            ),
+        },
+    ]
+
+    context = {
         "destination": destination,
-        "passengers": passengers,
         "hotels": hotels,
-    })
+    }
+
+    return render(
+        request,
+        "travel/hotel_booking.html",
+        context
+    )

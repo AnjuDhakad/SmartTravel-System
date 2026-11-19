@@ -1,203 +1,247 @@
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartTravel | Booking Options</title>
+\<!DOCTYPE html>
 
-    <link rel="stylesheet" href="{% static 'style.css' %}">
+\<html lang="en">
 
-</head>
+\<head>     \<meta charset="UTF-8">     \<meta name="viewport" content="width=device-width, initial-scale=1.0">     \<title>SmartTravel | Booking Options\</title>
 
-<body>
+```
+<link rel="stylesheet" href="{% static 'style.css' %}">
+```
 
-    <header class="navbar">
-        <a class="brand" href="/">✦ SmartTravel</a>
+\</head>
 
-        <a class="back-link" href="{% url 'travel:travel_search' %}">
-            ← Back to Routes
-        </a>
-    </header>
+\<body>
 
-    <main class="container">
+```
+<header class="navbar">
+    <a class="brand" href="/">✦ SmartTravel</a>
 
+    <a class="back-link" href="{% url 'travel:travel_search' %}">
+        ← Back to Routes
+    </a>
+</header>
 
-        <div class="heading heading-row">
-            <div>
-                <h1>Book Your Journey</h1>
-                <p>
-                    Review your route details and explore external
-                    booking websites for your journey.
-                </p>
-            </div>
+<main class="container">
 
-            <a href="{% url 'travel:hotel_booking' %}?destination={{ destination|urlencode }}&passengers={{ passengers|default:1 }}"
-                class="hotel-button">
-                🏨 Book Hotels →
-            </a>
+    <div class="heading heading-row">
+        <div>
+            <h1>Book Your Journey</h1>
+            <p>
+                Review your route details and explore external
+                booking websites for your journey.
+            </p>
         </div>
 
+        <a href="{% url 'travel:hotel_booking' %}?destination={{ destination|urlencode }}&passengers={{ passengers|default:1 }}"
+            class="hotel-button">
+            🏨 Book Hotels →
+        </a>
+    </div>
 
-        <!-- YOUR ROUTE -->
-        <section class="card">
-            <h2>📍 Your Route</h2>
+    <!-- YOUR ROUTE -->
+    <section class="card">
+        <h2>📍 Your Route</h2>
 
-            <div class="route">
-                <div class="route-point">
-                    <div class="label">From</div>
-                    <strong>
-                        {{ source|default:"Starting location" }}
-                    </strong>
-                </div>
-
-                <div class="arrow">→</div>
-
-                <div class="route-point">
-                    <div class="label">To</div>
-                    <strong>
-                        {{ destination|default:"Destination" }}
-                    </strong>
-                </div>
+        <div class="route">
+            <div class="route-point">
+                <div class="label">From</div>
+                <strong>{{ source|default:"Starting location" }}</strong>
             </div>
 
-            <div class="details">
-                <span class="chip">
-                    📏 Distance: {{ distance|default:"—" }} km
-                </span>
+            <div class="arrow">→</div>
 
-                {% if duration %}
-                <span class="chip">
-                    ⏱ Duration: {{ duration }}
-                </span>
-                {% endif %}
-
-                <span class="chip">
-                    👥 Passengers: {{ passengers|default:"1" }}
-                </span>
-
-                {% if travel_date %}
-                <span class="chip">
-                    📅 Date: {{ travel_date }}
-                </span>
-                {% endif %}
-
-                {% if travel_time %}
-                <span class="chip">
-                    🕒 Time: {{ travel_time }}
-                </span>
-                {% endif %}
+            <div class="route-point">
+                <div class="label">To</div>
+                <strong>{{ destination|default:"Destination" }}</strong>
             </div>
-        </section>
+        </div>
 
-        <!-- TRANSPORT OPTIONS -->
-        <section class="card">
-            <h2>🔄 Explore Transport Options</h2>
+        <div class="details">
+
+            <span class="chip">
+                🚘 Transport:
+                {{ transport_name|default:transport|default:"Not selected" }}
+            </span>
+
+            <span class="chip">
+                📏 Distance: {{ distance|default:"—" }} km
+            </span>
+
+            {% if duration %}
+            <span class="chip">
+                ⏱ Duration: {{ duration }}
+            </span>
+            {% endif %}
+
+            <span class="chip">
+                👥 Passengers: {{ passengers|default:"1" }}
+            </span>
+
+            {% if travel_date %}
+            <span class="chip">
+                📅 Date: {{ travel_date }}
+            </span>
+            {% endif %}
+
+            {% if time_from %}
+            <span class="chip">
+                🕒 Start Time: {{ time_from }}
+            </span>
+            {% endif %}
+
+            {% if time_to %}
+            <span class="chip">
+                🕒 End Time: {{ time_to }}
+            </span>
+            {% endif %}
+
+            {% if estimated_total_fare %}
+            <span class="chip">
+                💰 Estimated Fare: ₹{{ estimated_total_fare }}
+            </span>
+            {% endif %}
+
+        </div>
+    </section>
+
+    <!-- SELECTED TRANSPORT BOOKING -->
+    <section class="card">
+        <h2>🎫 Booking Options</h2>
+
+        <p class="muted">
+            Choose the relevant booking website for your selected transport.
+        </p>
+
+        <div class="provider-grid">
+
+            {% if transport == "walking" or transport == "bicycle" %}
+
+            <article class="provider">
+                <h3>
+                    {% if transport == "walking" %}
+                    🚶 Walking
+                    {% else %}
+                    🚲 Bicycle
+                    {% endif %}
+                </h3>
+
+                <p>
+                    This transport mode does not require an online ticket.
+                    You can follow the route using navigation.
+                </p>
+
+                <div class="provider-links">
+                    <a class="book-link"
+                        href="https://www.google.com/maps/dir/?api=1&origin={{ source|urlencode }}&destination={{ destination|urlencode }}"
+                        target="_blank" rel="noopener noreferrer">
+                        Open Google Maps ↗
+                    </a>
+                </div>
+            </article>
+
+            {% elif transport == "two_wheeler" %}
+
+            <article class="provider">
+                <h3>🏍️ Two-Wheeler</h3>
+
+                <p>Explore bike taxi services for your journey.</p>
+
+                <div class="provider-links">
+                    <a class="book-link" href="https://www.rapido.bike/"
+                        target="_blank" rel="noopener noreferrer">
+                        Visit Rapido ↗
+                    </a>
+
+                    <a class="book-link" href="https://www.uber.com/in/en/ride/"
+                        target="_blank" rel="noopener noreferrer">
+                        Visit Uber ↗
+                    </a>
+                </div>
+            </article>
+
+            {% elif transport == "car" %}
+
+            <article class="provider">
+                <h3>🚗 Car / Cab</h3>
+
+                <p>Explore cab services for your journey.</p>
+
+                <div class="provider-links">
+                    <a class="book-link" href="https://www.uber.com/in/en/ride/"
+                        target="_blank" rel="noopener noreferrer">
+                        Visit Uber ↗
+                    </a>
+
+                    <a class="book-link" href="https://www.olacabs.com/"
+                        target="_blank" rel="noopener noreferrer">
+                        Visit Ola ↗
+                    </a>
+                </div>
+            </article>
+
+            {% elif transport == "train" %}
+
+            <article class="provider">
+                <h3>🚆 Train</h3>
+
+                <p>
+                    Check train schedules, availability and ticket booking.
+                </p>
+
+                <div class="provider-links">
+                    <a class="book-link" href="https://www.irctc.co.in/"
+                        target="_blank" rel="noopener noreferrer">
+                        Visit IRCTC ↗
+                    </a>
+
+                    <a class="book-link" href="https://www.ixigo.com/trains"
+                        target="_blank" rel="noopener noreferrer">
+                        Visit ixigo ↗
+                    </a>
+                </div>
+            </article>
+
+            {% elif transport == "flight" %}
+
+            <article class="provider">
+                <h3>✈️ Flight</h3>
+
+                <p>Explore flight search and ticket booking options.</p>
+
+                <div class="provider-links">
+                    <a class="book-link" href="https://www.makemytrip.com/"
+                        target="_blank" rel="noopener noreferrer">
+                        Visit MakeMyTrip ↗
+                    </a>
+
+                    <a class="book-link" href="https://www.easemytrip.com/"
+                        target="_blank" rel="noopener noreferrer">
+                        Visit EaseMyTrip ↗
+                    </a>
+                </div>
+            </article>
+
+            {% else %}
 
             <p class="muted">
-                Explore different transport modes and visit their
-                websites to check booking options.
+                No transport option selected. Please go back and select a route.
             </p>
 
-            <div class="provider-grid">
+            {% endif %}
 
-                <!-- TWO-WHEELER -->
-                <article class="provider">
-                    <h3>🏍️ Two-Wheeler</h3>
+        </div>
 
-                    <p>
-                        Explore bike taxi services for eligible routes.
-                    </p>
+        <p class="section-note">
+            These links open external booking websites. SmartTravel
+            does not complete bookings itself or guarantee live fares,
+            schedules or availability.
+        </p>
+    </section>
 
-                    <div class="provider-links">
-                        <a class="book-link" href="https://www.rapido.bike/" target="_blank" rel="noopener noreferrer">
-                            Visit Rapido ↗
-                        </a>
+</main>
+```
 
-                        <a class="book-link" href="https://www.uber.com/in/en/ride/" target="_blank"
-                            rel="noopener noreferrer">
-                            Visit Uber ↗
-                        </a>
-                    </div>
-                </article>
-
-                <!-- CAR -->
-                <article class="provider">
-                    <h3>🚗 Car / Cab</h3>
-
-                    <p>
-                        Explore cab services for your journey.
-                    </p>
-
-                    <div class="provider-links">
-                        <a class="book-link" href="https://www.uber.com/in/en/ride/" target="_blank"
-                            rel="noopener noreferrer">
-                            Visit Uber ↗
-                        </a>
-
-                        <a class="book-link" href="https://www.olacabs.com/" target="_blank" rel="noopener noreferrer">
-                            Visit Ola ↗
-                        </a>
-                    </div>
-                </article>
-
-                <!-- TRAIN: ADDED DIRECTLY -->
-                <article class="provider">
-                    <h3>🚆 Train</h3>
-
-                    <p>
-                        Check train schedules, availability and ticket
-                        booking options for your journey.
-                    </p>
-
-                    <div class="provider-links">
-                        <a class="book-link" href="https://www.irctc.co.in/" target="_blank" rel="noopener noreferrer">
-                            Visit IRCTC ↗
-                        </a>
-
-                        <a class="book-link" href="https://www.ixigo.com/trains" target="_blank"
-                            rel="noopener noreferrer">
-                            Visit ixigo ↗
-                        </a>
-                    </div>
-                </article>
-
-                <!-- FLIGHT -->
-                <article class="provider">
-                    <h3>✈️ Flight</h3>
-
-                    <p>
-                        Explore flight search and ticket booking options.
-                    </p>
-
-                    <div class="provider-links">
-                        <a class="book-link" href="https://www.makemytrip.com/" target="_blank"
-                            rel="noopener noreferrer">
-                            Visit MakeMyTrip ↗
-                        </a>
-
-                        <a class="book-link" href="https://www.easemytrip.com/" target="_blank"
-                            rel="noopener noreferrer">
-                            Visit EaseMyTrip ↗
-                        </a>
-                    </div>
-                </article>
-
-            </div>
-
-            <p class="section-note">
-                These links open external booking websites. You may
-                need to enter your source, destination and travel date
-                again. SmartTravel does not complete bookings itself
-                or guarantee live fares, schedules or availability.
-            </p>
-        </section>
-
-        
-
-    </main>
-
-</body>
-
-</html>
+\</body>
+\</html>

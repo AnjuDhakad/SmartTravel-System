@@ -1,3 +1,4 @@
+
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -8,9 +9,110 @@
     <title>Smart Travel | Route Search</title>
 
     <link rel="stylesheet" href="{% static 'style.css' %}">
-
     <link href="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.css" rel="stylesheet">
 
+    <style>
+        .location-field {
+            position: relative;
+        }
+
+        .location-suggestions {
+            position: absolute;
+            top: calc(100% - 48px);
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-top: 5px;
+            max-height: 230px;
+            overflow-y: auto;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.12);
+        }
+
+        .location-suggestions[hidden] {
+            display: none;
+        }
+
+        .location-suggestion {
+            padding: 12px 14px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .location-suggestion:hover,
+        .location-suggestion:focus {
+            background: #f0f2ff;
+            outline: none;
+        }
+
+        .location-suggestion:last-child {
+            border-bottom: none;
+        }
+
+        .location-suggestion small {
+            display: block;
+            color: #777;
+            margin-top: 4px;
+        }
+
+        .location-no-result {
+            padding: 12px;
+            color: #777;
+            font-size: 13px;
+        }
+
+        .time-range-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .transport-eligibility {
+            margin-top: 18px;
+            padding: 16px;
+            border-radius: 10px;
+            background: #f5f6ff;
+        }
+
+        .transport-eligibility h3 {
+            margin: 0 0 12px;
+            font-size: 16px;
+        }
+
+        .transport-eligibility-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .transport-chip {
+            padding: 8px 12px;
+            border-radius: 20px;
+            background: #fff;
+            border: 1px solid #ddd;
+            font-size: 13px;
+        }
+
+        .transport-chip.available {
+            border-color: #16856b;
+            color: #16856b;
+        }
+
+        .transport-chip.unavailable {
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
+
+        @media (max-width: 600px) {
+            .time-range-fields {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -54,37 +156,93 @@
                         <p>Enter city names, for example, Bhopal to Mumbai.</p>
                     </div>
 
-                    <form method="POST" action="{% url 'travel:travel_search' %}">
+                    <form method="POST" action="{% url 'travel:travel_search' %}" id="travel-search-form">
                         {% csrf_token %}
 
                         <div class="form-grid">
 
-                            <div class="field full-width">
+                            <!-- STARTING LOCATION -->
+
+                            <div class="field full-width location-field">
                                 <label for="source">Starting location</label>
-                                <input type="text" id="source" name="source" placeholder="e.g. Bhopal"
-                                    value="{{ form_data.source }}" required>
+
+                                <input type="text" id="source" name="source"
+                                    placeholder="Search starting location..."
+                                    value="{{ form_data.source }}" autocomplete="off" required>
+
+                                <div id="source-suggestions"
+                                    class="location-suggestions" role="listbox" hidden></div>
+
+                                <button type="button" id="use-current-location"
+                                    class="action-button" style="margin-top: 10px;">
+                                    📍 Use My Current Location
+                                </button>
+
+                                <small id="location-status" role="status"
+                                    aria-live="polite"
+                                    style="display: block; margin-top: 8px;"></small>
                             </div>
 
-                            <div class="field full-width">
+                            <!-- DESTINATION -->
+
+                            <div class="field full-width location-field">
                                 <label for="destination">Destination</label>
-                                <input type="text" id="destination" name="destination" placeholder="e.g. Mumbai"
-                                    value="{{ form_data.destination }}" required>
+
+                                <input type="text" id="destination" name="destination"
+                                    placeholder="Search destination..."
+                                    value="{{ form_data.destination }}" autocomplete="off" required>
+
+                                <div id="destination-suggestions"
+                                    class="location-suggestions" role="listbox" hidden></div>
                             </div>
+
+                            <!-- UPDATE 3: DATE SELECTION -->
 
                             <div class="field">
                                 <label for="date">Travel date</label>
-                                <input type="date" id="date" name="date" value="{{ form_data.date }}">
+                            <input type="date" id="date" name="date"
+       value="{{ form_data.date }}"
+       min="{% now 'Y-m-d' %}"
+       required>
                             </div>
 
-                            <div class="field">
-                                <label for="time">Departure time</label>
-                                <input type="time" id="time" name="time" value="{{ form_data.time }}">
+                            <!-- UPDATE 4: TIME RANGE -->
+
+                            <div class="field full-width">
+                                <label>Travel time range</label>
+
+                                <div class="time-range-fields">
+
+                                    <div>
+                                        <label for="time_from">From time</label>
+                                        <input type="time" id="time_from" name="time_from"
+                                            value="{{ form_data.time_from|default:form_data.time }}"
+                                            required>
+                                    </div>
+
+                                    <div>
+                                        <label for="time_to">To time</label>
+                                        <input type="time" id="time_to" name="time_to"
+                                            value="{{ form_data.time_to }}"
+                                            required>
+                                    </div>
+
+                                </div>
+
+                                <small style="display:block; margin-top:8px;">
+                                    Select your preferred departure time range.
+                                </small>
                             </div>
+
+                            <!-- PASSENGERS -->
 
                             <div class="field">
                                 <label for="passengers">Passengers</label>
-                                <input type="number" id="passengers" name="passengers" min="1" max="50"
-                                    value="{{ form_data.passengers|default:'1' }}" required>
+
+                                <input type="number" id="passengers" name="passengers"
+                                    min="1" max="50"
+                                    value="{{ form_data.passengers|default:'1' }}"
+                                    required>
                             </div>
 
                         </div>
@@ -105,6 +263,7 @@
                         </p>
 
                         <div class="feature-list">
+
                             <div class="feature-item">
                                 <span class="feature-icon">📍</span>
                                 <span>Explore routes on an interactive map</span>
@@ -119,6 +278,7 @@
                                 <span class="feature-icon">⏱️</span>
                                 <span>Compare estimated travel times</span>
                             </div>
+
                         </div>
                     </div>
 
@@ -145,6 +305,7 @@
                     </div>
 
                     <div class="route-endpoints">
+
                         <div class="endpoint">
                             <div class="endpoint-label">From</div>
                             <div class="endpoint-name" id="result-source">
@@ -160,6 +321,7 @@
                                 {{ route_data.destination }}
                             </div>
                         </div>
+
                     </div>
 
                     <div class="stats-grid">
@@ -216,17 +378,52 @@
                         </span>
                         {% endif %}
 
-                        {% if route_data.time %}
-                        <span class="meta-chip">
-                            🕒 {{ route_data.time }}
+                        {% if route_data.time_from or route_data.time_to or route_data.time %}
+                        <span class="meta-chip" id="result-time-range">
+                            🕒
+                            {{ route_data.time_from|default:route_data.time }}
+                            {% if route_data.time_to %}
+                            – {{ route_data.time_to }}
+                            {% endif %}
                         </span>
                         {% endif %}
 
-                        <span class="meta-chip" id="result-train-details" {% if not route_data.train_number %}hidden{% endif %}>
+                        <span class="meta-chip" id="result-train-details"
+                            {% if not route_data.train_number %}hidden{% endif %}>
                             🚆 {{ route_data.train_number }}
                             {{ route_data.train_name }}
                         </span>
 
+                    </div>
+
+                    <!-- UPDATE 5: DISTANCE BASED TRANSPORT OPTIONS -->
+
+                    <div class="transport-eligibility">
+                        <h3>🚍 Transport options based on distance</h3>
+
+                        <div class="transport-eligibility-list" id="transport-eligibility-list">
+
+                            <span class="transport-chip" data-mode="walking">
+                                🚶 Walking (up to 5 km)
+                            </span>
+
+                            <span class="transport-chip" data-mode="bicycle">
+                                🚲 Bicycle (up to 20 km)
+                            </span>
+
+                            <span class="transport-chip" data-mode="train">
+                                🚆 Train (30 km onwards)
+                            </span>
+
+                            <span class="transport-chip" data-mode="flight">
+                                ✈️ Flight (300 km onwards)
+                            </span>
+
+                        </div>
+
+                        <small id="transport-distance-message"
+                            style="display:block; margin-top:10px;">
+                        </small>
                     </div>
 
                 </article>
@@ -243,7 +440,8 @@
                             </p>
                         </div>
 
-                        <button type="button" class="edit-route-button" id="edit-route-button">
+                        <button type="button" class="edit-route-button"
+                            id="edit-route-button">
                             ✎ Edit Route
                         </button>
                     </div>
@@ -251,7 +449,8 @@
                     <div id="map-route-options" class="map-route-options" hidden>
                     </div>
 
-                    <p id="map-route-status" class="map-route-status" aria-live="polite">
+                    <p id="map-route-status" class="map-route-status"
+                        aria-live="polite">
                     </p>
 
                     <div id="route-map" aria-label="Interactive route map"></div>
@@ -272,30 +471,43 @@
 
                     <div class="action-buttons">
 
-                        <form method="POST" action="{% url 'travel:save_trip' %}" class="save-trip-form"
-                            id="save-trip-form">
+                        <form method="POST" action="{% url 'travel:save_trip' %}"
+                            class="save-trip-form" id="save-trip-form">
 
                             {% csrf_token %}
 
-                            <input type="hidden" name="source" value="{{ route_data.source }}">
+                            <input type="hidden" name="source"
+                                value="{{ route_data.source }}">
 
-                            <input type="hidden" name="destination" value="{{ route_data.destination }}">
+                            <input type="hidden" name="destination"
+                                value="{{ route_data.destination }}">
 
-                            <input type="hidden" name="transport" id="save-transport"
-                                value="{{ route_data.transport }}">
+                            <input type="hidden" name="transport"
+                                id="save-transport" value="{{ route_data.transport }}">
 
-                            <input type="hidden" name="distance_km" id="save-distance"
-                                value="{{ route_data.distance_km }}">
+                            <input type="hidden" name="distance_km"
+                                id="save-distance" value="{{ route_data.distance_km }}">
 
-                            <input type="hidden" name="duration" id="save-duration" value="{{ route_data.duration }}">
+                            <input type="hidden" name="duration"
+                                id="save-duration" value="{{ route_data.duration }}">
 
-                            <input type="hidden" name="date" value="{{ route_data.date }}">
+                            <input type="hidden" name="date"
+                                value="{{ route_data.date }}">
 
-                            <input type="hidden" name="time" value="{{ route_data.time }}">
+                            <input type="hidden" name="time"
+                                value="{{ route_data.time }}">
 
-                            <input type="hidden" name="passengers" value="{{ route_data.passengers }}">
+                            <input type="hidden" name="time_from"
+                                id="save-time-from" value="{{ route_data.time_from|default:route_data.time }}">
 
-                            <input type="hidden" name="estimated_total_fare" id="save-fare"
+                            <input type="hidden" name="time_to"
+                                id="save-time-to" value="{{ route_data.time_to }}">
+
+                            <input type="hidden" name="passengers"
+                                value="{{ route_data.passengers }}">
+
+                            <input type="hidden" name="estimated_total_fare"
+                                id="save-fare"
                                 value="{{ route_data.estimated_total_fare_raw }}">
 
                             <button type="submit" class="action-button primary-action">
@@ -310,26 +522,38 @@
                             ↗ View Map
                         </a>
 
-                        <form method="GET" action="{% url 'travel:book_ticket' %}" class="save-trip-form"
-                            id="book-trip-form">
+                        <form method="GET" action="{% url 'travel:book_ticket' %}"
+                            class="save-trip-form" id="book-trip-form">
 
-                            <input type="hidden" name="source" value="{{ route_data.source }}">
+                            <input type="hidden" name="source"
+                                value="{{ route_data.source }}">
 
-                            <input type="hidden" name="destination" value="{{ route_data.destination }}">
+                            <input type="hidden" name="destination"
+                                value="{{ route_data.destination }}">
 
-                            <input type="hidden" name="transport" id="book-transport"
-                                value="{{ route_data.transport }}">
+                            <input type="hidden" name="transport"
+                                id="book-transport" value="{{ route_data.transport }}">
 
-                            <input type="hidden" name="distance_km" id="book-distance"
-                                value="{{ route_data.distance_km }}">
+                            <input type="hidden" name="distance"
+                                id="book-distance" value="{{ route_data.distance_km }}">
 
-                            <input type="hidden" name="duration" id="book-duration" value="{{ route_data.duration }}">
+                            <input type="hidden" name="duration"
+                                id="book-duration" value="{{ route_data.duration }}">
 
-                            <input type="hidden" name="date" value="{{ route_data.date }}">
+                            <input type="hidden" name="date"
+                                value="{{ route_data.date }}">
 
-                            <input type="hidden" name="time" value="{{ route_data.time }}">
+                            <input type="hidden" name="time"
+                                value="{{ route_data.time }}">
 
-                            <input type="hidden" name="passengers" value="{{ route_data.passengers }}">
+                            <input type="hidden" name="time_from"
+                                id="book-time-from" value="{{ route_data.time_from|default:route_data.time }}">
+
+                            <input type="hidden" name="time_to"
+                                id="book-time-to" value="{{ route_data.time_to }}">
+
+                            <input type="hidden" name="passengers"
+                                value="{{ route_data.passengers }}">
 
                             <button type="submit" class="action-button primary-action">
                                 🎫 Book Ticket
@@ -339,7 +563,7 @@
 
                         <a href="{% url 'comparison:compare' %}?origin={{ route_data.source|urlencode }}&amp;destination={{ route_data.destination|urlencode }}&amp;distance={{ route_data.distance_km }}&amp;passengers={{ route_data.passengers }}"
                             class="action-button" id="compare-options-button">
-                            ⇄ Compare Options
+                            ⚖ Compare Transport Options
                         </a>
 
                     </div>
@@ -352,7 +576,7 @@
         {{ route_options|json_script:"route-options" }}
 
         <script src="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.js"></script>
-
+         
         <script>
             document.addEventListener("DOMContentLoaded", function () {
 
@@ -366,8 +590,49 @@
                 const routeStatus = byId("map-route-status");
                 const mapElement = byId("route-map");
 
+                // UPDATE 3: Disable past dates
+                const dateInput = byId("date");
+
+                if (dateInput) {
+                    const today = new Date();
+                    const localToday = new Date(
+                        today.getTime() - today.getTimezoneOffset() * 60000
+                    ).toISOString().split("T")[0];
+
+                    dateInput.min = localToday;
+
+                    if (dateInput.value && dateInput.value < localToday) {
+                        dateInput.value = localToday;
+                    }
+                }
+
+                // UPDATE 4: Validate time range
+                const timeFromInput = byId("time_from");
+                const timeToInput = byId("time_to");
+                const searchForm = byId("travel-search-form");
+
+                if (searchForm && timeFromInput && timeToInput) {
+                    searchForm.addEventListener("submit", function (event) {
+
+                        if (
+                            timeFromInput.value &&
+                            timeToInput.value &&
+                            timeToInput.value <= timeFromInput.value
+                        ) {
+                            event.preventDefault();
+
+                            alert(
+                                "To Time must be later than From Time. Please select a valid time range."
+                            );
+
+                            timeToInput.focus();
+                        }
+                    });
+                }
+
                 // Edit search
                 byId("edit-route-button")?.addEventListener("click", function () {
+
                     if (searchSection) {
                         searchSection.hidden = false;
                     }
@@ -381,18 +646,14 @@
                         block: "start"
                     });
 
-                    byId("source")?.focus({ preventScroll: true });
+                    byId("source")?.focus({
+                        preventScroll: true
+                    });
                 });
-
-                // Comparison placeholder
-                // byId("compare-options-button")?.addEventListener("click", function () {
-                //     alert(
-                //         "Choose different route options to compare their distance and duration."
-                //     );
-                // });
 
                 // Safely read JSON embedded by Django
                 function readJson(id, fallback) {
+
                     const element = byId(id);
 
                     if (!element) {
@@ -410,6 +671,7 @@
                 // Decode Google's encoded polyline format.
                 // Coordinates returned are [longitude, latitude].
                 function decodePolyline(encoded) {
+
                     if (typeof encoded !== "string" || !encoded.length) {
                         return [];
                     }
@@ -420,12 +682,15 @@
                     const coordinates = [];
 
                     try {
+
                         while (index < encoded.length) {
+
                             let result = 0;
                             let shift = 0;
                             let byte;
 
                             do {
+
                                 if (index >= encoded.length) {
                                     return [];
                                 }
@@ -433,6 +698,7 @@
                                 byte = encoded.charCodeAt(index++) - 63;
                                 result |= (byte & 31) << shift;
                                 shift += 5;
+
                             } while (byte >= 32);
 
                             latitude += (result & 1)
@@ -443,6 +709,7 @@
                             shift = 0;
 
                             do {
+
                                 if (index >= encoded.length) {
                                     return [];
                                 }
@@ -450,6 +717,7 @@
                                 byte = encoded.charCodeAt(index++) - 63;
                                 result |= (byte & 31) << shift;
                                 shift += 5;
+
                             } while (byte >= 32);
 
                             longitude += (result & 1)
@@ -461,7 +729,9 @@
                                 latitude / 1e5
                             ]);
                         }
+
                     } catch (error) {
+
                         console.error("Polyline decoding failed:", error);
                         return [];
                     }
@@ -473,15 +743,14 @@
                 const fallbackPolyline = readJson("route-polyline", "");
 
                 /*
-                 * IMPORTANT:
-                 * For trains, use only segment_polyline.
-                 * The backend must create this geometry for the searched
-                 * source-to-destination portion of the train journey.
-                 *
-                 * Do not use the full train route polyline as a fallback,
-                 * because that can display the train's entire journey.
+                 * Train routes use segment_polyline only.
+                 * Backend should provide the searched source-to-destination
+                 * train segment geometry.
                  */
-                const routeOptions = (Array.isArray(rawOptions) ? rawOptions : [])
+
+                const routeOptions = (
+                    Array.isArray(rawOptions) ? rawOptions : []
+                )
                     .map(function (option, index) {
 
                         if (!option || typeof option !== "object") {
@@ -495,11 +764,14 @@
                         let encodedPolyline = "";
 
                         if (mode === "train") {
+
                             encodedPolyline =
                                 option.segment_polyline ||
                                 option.segmentPolyline ||
                                 "";
+
                         } else {
+
                             encodedPolyline =
                                 option.polyline ||
                                 option.encoded_polyline ||
@@ -510,8 +782,10 @@
                         const coordinates = decodePolyline(encodedPolyline);
 
                         if (coordinates.length < 2 && mode !== "flight") {
+
                             console.warn(
-                                "Skipping route without valid segment geometry:", option
+                                "Skipping route without valid segment geometry:",
+                                option
                             );
 
                             return null;
@@ -520,21 +794,38 @@
                         let label;
 
                         if (mode === "flight") {
+
                             label = option.label || (
                                 "Flight " + (option.flight_number || "")
                             );
+
                         } else if (mode === "train") {
+
                             const number = option.train_number || "";
                             const name = option.train_name || "Train";
 
                             label = number
                                 ? "Train " + number + " · " + name
                                 : name;
+
                         } else if (mode === "two_wheeler") {
+
                             label = "Two-wheeler";
+
+                        } else if (mode === "walking") {
+
+                            label = "Walking";
+
+                        } else if (mode === "bicycle") {
+
+                            label = "Bicycle";
+
                         } else if (mode === "car") {
+
                             label = "Car";
+
                         } else {
+
                             label = option.label || "Route " + (index + 1);
                         }
 
@@ -544,8 +835,13 @@
                             color = "#e67e22";
                         } else if (mode === "train") {
                             color = "#7866d5";
-                        } else if (mode === "two_wheeler") {
+                        } else if (
+                            mode === "two_wheeler" ||
+                            mode === "bicycle"
+                        ) {
                             color = "#16856b";
+                        } else if (mode === "walking") {
+                            color = "#d18b27";
                         }
 
                         return {
@@ -566,12 +862,14 @@
                     })
                     .filter(Boolean);
 
+                // Road routes can use the main route polyline as fallback.
                 // Do not draw a full train route as a fallback.
-                // Road routes can use the main route polyline if needed.
                 if (!routeOptions.length) {
+
                     const roadCoordinates = decodePolyline(fallbackPolyline);
 
                     if (roadCoordinates.length >= 2) {
+
                         routeOptions.push({
                             id: "travel-route-fallback",
                             mode: "car",
@@ -585,9 +883,88 @@
                     }
                 }
 
+                // UPDATE 5: Distance-based transport eligibility
+                function updateTransportEligibility(distance) {
+
+                    const list = byId("transport-eligibility-list");
+                    const message = byId("transport-distance-message");
+
+                    if (!list || !message) {
+                        return;
+                    }
+
+                    const km = Number(distance);
+
+                    if (!Number.isFinite(km) || km <= 0) {
+
+                        message.textContent =
+                            "Transport eligibility will appear when route distance is available.";
+
+                        return;
+                    }
+
+                    const availability = {
+                        walking: km <= 5,
+                        bicycle: km <= 20,
+                        train: km >= 30,
+                        flight: km >= 300
+                    };
+
+                    list.querySelectorAll(".transport-chip").forEach(
+                        function (chip) {
+
+                            const mode = chip.dataset.mode;
+                            const available = availability[mode];
+
+                            chip.classList.toggle("available", available);
+                            chip.classList.toggle("unavailable", !available);
+
+                            chip.setAttribute(
+                                "aria-label",
+                                chip.textContent +
+                                (available ? " available" : " not available")
+                            );
+                        }
+                    );
+
+                    let availableNames = [];
+
+                    if (availability.walking) {
+                        availableNames.push("Walking");
+                    }
+
+                    if (availability.bicycle) {
+                        availableNames.push("Bicycle");
+                    }
+
+                    if (availability.train) {
+                        availableNames.push("Train");
+                    }
+
+                    if (availability.flight) {
+                        availableNames.push("Flight");
+                    }
+
+                    message.textContent =
+                        "For " + km + " km, suggested options: " +
+                        (
+                            availableNames.length
+                                ? availableNames.join(", ")
+                                : "No listed transport option meets the distance rule."
+                        ) + ".";
+                }
+
+                // Show eligibility using the searched route distance initially.
+                updateTransportEligibility(
+                    "{{ route_data.distance_km|default:'' }}"
+                );
+
                 if (!routeOptions.length) {
-                    routeStatus.textContent =
-                        "No valid route segment was received. Train results need segment_polyline from the backend.";
+
+                    if (routeStatus) {
+                        routeStatus.textContent =
+                            "No valid route segment was received. Train results need segment_polyline from the backend.";
+                    }
 
                     console.error(
                         "No route segment geometry was received from the backend."
@@ -597,33 +974,47 @@
                 }
 
                 if (typeof maplibregl === "undefined") {
+
                     routeStatus.textContent =
                         "Map library failed to load. Check your internet connection.";
 
                     return;
                 }
 
-                // Create the map using the first route that has drawable geometry.
-                const firstMappableRoute = routeOptions.find(function (route) {
-                    return route.coordinates.length >= 2;
-                });
+                // Create map using first route with drawable geometry.
+                const firstMappableRoute = routeOptions.find(
+                    function (route) {
+                        return route.coordinates.length >= 2;
+                    }
+                );
 
                 if (!firstMappableRoute) {
-                    routeStatus.textContent = "Routes found, but no map geometry is available.";
+
+                    routeStatus.textContent =
+                        "Routes found, but no map geometry is available.";
+
                     optionsContainer.replaceChildren();
+
                     routeOptions.forEach(function (route, index) {
+
                         const button = document.createElement("button");
+
                         button.type = "button";
                         button.className = "map-route-button";
                         button.dataset.routeIndex = index;
                         button.textContent = route.label;
+
                         button.addEventListener("click", function () {
                             selectRoute(index);
                         });
+
                         optionsContainer.appendChild(button);
                     });
+
                     optionsContainer.hidden = routeOptions.length < 2;
+
                     updateRouteDetails(routeOptions[0]);
+
                     return;
                 }
 
@@ -640,6 +1031,7 @@
                 );
 
                 function fitRoute(route) {
+
                     const bounds = route.coordinates.reduce(
                         function (currentBounds, point) {
                             return currentBounds.extend(point);
@@ -658,13 +1050,18 @@
                 }
 
                 function updateRouteDetails(route) {
+
                     const transportName = route.mode === "flight"
                         ? "Flight"
                         : route.mode === "train"
                             ? "Train"
-                            : route.mode === "two_wheeler"
-                                ? "Two-wheeler"
-                                : "Car";
+                            : route.mode === "walking"
+                                ? "Walking"
+                                : route.mode === "bicycle"
+                                    ? "Bicycle"
+                                    : route.mode === "two_wheeler"
+                                        ? "Two-wheeler"
+                                        : "Car";
 
                     byId("result-transport").textContent = transportName;
 
@@ -674,37 +1071,54 @@
                     byId("result-duration").textContent =
                         route.duration || "—";
 
-                    // Flight APIs may not return fares. In that case, show a clearly
-                    // approximate domestic one-way estimate based on distance and passengers.
-                    const distanceKm = Number(route.distance_km);
+                    // Update transport eligibility for selected route.
+                    updateTransportEligibility(route.distance_km);
+
                     const passengerInput = document.querySelector(
-                        'input[name="passengers"]'
+                        '#travel-search-form input[name="passengers"], #save-trip-form input[name="passengers"]'
                     );
+
                     const passengerCount = Math.max(
                         1,
-                        Number(passengerInput && passengerInput.value) || Number("{{ route_data.passengers|default:1 }}") || 1
+                        Number(passengerInput && passengerInput.value) ||
+                        Number("{{ route_data.passengers|default:1 }}") || 1
                     );
+
                     let fareToShow = route.estimated_fare;
                     let isApproximateFlightFare = false;
 
+                    const distanceKm = Number(route.distance_km);
+
+                    // Approximate domestic flight fare when API fare is missing.
                     if (
-                        (fareToShow == null || fareToShow === "" || Number(fareToShow) <= 0) &&
+                        (fareToShow == null ||
+                            fareToShow === "" ||
+                            Number(fareToShow) <= 0) &&
                         route.mode === "flight" &&
-                        Number.isFinite(distanceKm) && distanceKm > 0
+                        Number.isFinite(distanceKm) &&
+                        distanceKm > 0
                     ) {
-                        fareToShow = Math.round((3000 + distanceKm * 4.5) * passengerCount);
+
+                        fareToShow = Math.round(
+                            (3000 + distanceKm * 4.5) * passengerCount
+                        );
+
                         isApproximateFlightFare = true;
                     }
 
                     byId("result-fare").textContent =
-                        fareToShow == null || fareToShow === "" || !Number.isFinite(Number(fareToShow))
+                        fareToShow == null ||
+                        fareToShow === "" ||
+                        !Number.isFinite(Number(fareToShow))
                             ? "Unavailable"
-                            : "₹" + Number(fareToShow).toLocaleString("en-IN") +
-                            (isApproximateFlightFare ? " (approx.)" : "");
+                            : "₹" +
+                                Number(fareToShow).toLocaleString("en-IN") +
+                                (isApproximateFlightFare ? " (approx.)" : "");
 
                     const trainDetails = byId("result-train-details");
 
                     if (route.mode === "train") {
+
                         trainDetails.hidden = false;
 
                         trainDetails.textContent =
@@ -714,12 +1128,16 @@
                             route.train_name +
                             (route.departure ? " · " + route.departure : "") +
                             (route.arrival ? " → " + route.arrival : "");
+
                     } else {
+
                         trainDetails.hidden = true;
                     }
 
                     const fareValue =
-                        fareToShow == null || fareToShow === "" || !Number.isFinite(Number(fareToShow))
+                        fareToShow == null ||
+                        fareToShow === "" ||
+                        !Number.isFinite(Number(fareToShow))
                             ? "0"
                             : String(fareToShow);
 
@@ -734,16 +1152,31 @@
                 }
 
                 function selectRoute(selectedIndex) {
+
                     const selected = routeOptions[selectedIndex];
-                    if (!selected) return;
+
+                    if (!selected) {
+                        return;
+                    }
 
                     routeOptions.forEach(function (route, index) {
+
                         const layerId = route.id + "-line";
                         const active = index === selectedIndex;
 
                         if (map.getLayer(layerId)) {
-                            map.setPaintProperty(layerId, "line-width", active ? 6 : 3);
-                            map.setPaintProperty(layerId, "line-opacity", active ? 1 : 0.3);
+
+                            map.setPaintProperty(
+                                layerId,
+                                "line-width",
+                                active ? 6 : 3
+                            );
+
+                            map.setPaintProperty(
+                                layerId,
+                                "line-opacity",
+                                active ? 1 : 0.3
+                            );
                         }
 
                         const button = optionsContainer.querySelector(
@@ -751,27 +1184,49 @@
                         );
 
                         if (button) {
-                            button.setAttribute("aria-pressed", String(active));
-                            button.style.borderColor = active ? route.color : "#e5e8f2";
-                            button.style.background = active ? "#f0f2ff" : "#fff";
+
+                            button.setAttribute(
+                                "aria-pressed",
+                                String(active)
+                            );
+
+                            button.style.borderColor =
+                                active ? route.color : "#e5e8f2";
+
+                            button.style.background =
+                                active ? "#f0f2ff" : "#fff";
                         }
                     });
 
                     let status = "Showing " + selected.label;
-                    if (selected.distance_km) status += " · " + selected.distance_km + " km";
-                    if (selected.duration) status += " · " + selected.duration;
+
+                    if (selected.distance_km) {
+                        status += " · " + selected.distance_km + " km";
+                    }
+
+                    if (selected.duration) {
+                        status += " · " + selected.duration;
+                    }
+
                     routeStatus.textContent = status + ".";
 
                     updateRouteDetails(selected);
-                    if (selected.coordinates.length >= 2) fitRoute(selected);
+
+                    if (selected.coordinates.length >= 2) {
+                        fitRoute(selected);
+                    }
                 }
 
+                
+                // MAP LOAD
                 map.on("load", function () {
 
-                    // Draw only routes that include valid map geometry.
-                    // Flight options can still appear in the route selector without a road polyline.
+                    // Draw only routes with valid map geometry.
                     routeOptions.forEach(function (route) {
-                        if (route.coordinates.length < 2) return;
+
+                        if (route.coordinates.length < 2) {
+                            return;
+                        }
 
                         map.addSource(route.id, {
                             type: "geojson",
@@ -804,11 +1259,12 @@
                         });
                     });
 
-                    // Add a unique button for every route
+                    // Create route selection buttons.
                     optionsContainer.replaceChildren();
                     optionsContainer.hidden = routeOptions.length < 2;
 
                     routeOptions.forEach(function (route, index) {
+
                         const button = document.createElement("button");
 
                         button.type = "button";
@@ -841,6 +1297,7 @@
                 });
 
                 map.on("error", function (event) {
+
                     console.error(
                         "MapLibre error:",
                         event.error || event
@@ -851,6 +1308,356 @@
         </script>
 
         {% endif %}
+
+
+        <!-- LIVE LOCATION SCRIPT -->
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+
+                const sourceInput = document.getElementById("source");
+                const locationButton = document.getElementById("use-current-location");
+                const locationStatus = document.getElementById("location-status");
+
+                if (!sourceInput || !locationButton || !locationStatus) {
+                    return;
+                }
+
+                locationButton.addEventListener("click", function () {
+
+                    if (!navigator.geolocation) {
+
+                        locationStatus.textContent =
+                            "Your browser does not support location.";
+
+                        return;
+                    }
+
+                    locationButton.disabled = true;
+
+                    locationStatus.textContent =
+                        "Detecting your location...";
+
+                    navigator.geolocation.getCurrentPosition(
+
+                        async function (position) {
+
+                            const latitude = position.coords.latitude;
+                            const longitude = position.coords.longitude;
+
+                            locationStatus.textContent =
+                                "Location detected. Getting address...";
+
+                            try {
+
+                                const response = await fetch(
+                                    `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`
+                                );
+
+                                if (!response.ok) {
+                                    throw new Error("Address lookup failed");
+                                }
+
+                                const data = await response.json();
+
+                                if (data.display_name) {
+
+                                    sourceInput.value = data.display_name;
+
+                                    sourceInput.dispatchEvent(
+                                        new Event("change", {
+                                            bubbles: true
+                                        })
+                                    );
+
+                                    locationStatus.textContent =
+                                        "Your current location has been added successfully.";
+
+                                } else {
+
+                                    throw new Error("Address not found");
+                                }
+
+                            } catch (error) {
+
+                                locationStatus.textContent =
+                                    "Location detected, but address could not be retrieved. Please enter it manually.";
+
+                                console.error(
+                                    "Address lookup error:",
+                                    error
+                                );
+
+                            } finally {
+
+                                locationButton.disabled = false;
+                            }
+                        },
+
+                        function (error) {
+
+                            if (error.code === 1) {
+
+                                locationStatus.textContent =
+                                    "Location permission denied. Please allow location access.";
+
+                            } else if (error.code === 2) {
+
+                                locationStatus.textContent =
+                                    "Your current location is unavailable.";
+
+                            } else if (error.code === 3) {
+
+                                locationStatus.textContent =
+                                    "Location request timed out. Please try again.";
+
+                            } else {
+
+                                locationStatus.textContent =
+                                    "Unable to detect your location.";
+                            }
+
+                            locationButton.disabled = false;
+                        },
+
+                        {
+                            enableHighAccuracy: true,
+                            timeout: 15000,
+                            maximumAge: 0
+                        }
+                    );
+                });
+
+            });
+        </script>
+
+
+        <!-- PICK LOCATION SEARCH SCRIPT -->
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+
+                function setupLocationSearch(inputId, suggestionsId) {
+
+                    const input = document.getElementById(inputId);
+                    const suggestions = document.getElementById(suggestionsId);
+
+                    if (!input || !suggestions) {
+                        return;
+                    }
+
+                    let searchTimer;
+                    let activeController;
+
+                    function hideSuggestions() {
+
+                        suggestions.hidden = true;
+                        suggestions.replaceChildren();
+                    }
+
+                    function createSuggestion(place) {
+
+                        const properties = place.properties || {};
+
+                        const name = properties.name || "";
+                        const street = properties.street || "";
+
+                        const city = properties.city ||
+                            properties.town ||
+                            properties.village ||
+                            properties.county || "";
+
+                        const state = properties.state || "";
+                        const country = properties.country || "";
+
+                        const mainName = name || street || city;
+
+                        const addressParts = [
+                            mainName,
+                            city !== mainName ? city : "",
+                            state,
+                            country
+                        ].filter(Boolean);
+
+                        const fullAddress = [
+                            ...new Set(addressParts)
+                        ].join(", ");
+
+                        if (!fullAddress) {
+                            return null;
+                        }
+
+                        const item = document.createElement("div");
+
+                        item.className = "location-suggestion";
+                        item.setAttribute("role", "option");
+                        item.setAttribute("tabindex", "0");
+
+                        const title = document.createElement("span");
+
+                        title.textContent = mainName || fullAddress;
+
+                        item.appendChild(title);
+
+                        const details = document.createElement("small");
+
+                        details.textContent = fullAddress;
+
+                        item.appendChild(details);
+
+                        function selectLocation() {
+
+                            input.value = fullAddress;
+
+                            hideSuggestions();
+
+                            input.dispatchEvent(
+                                new Event("change", {
+                                    bubbles: true
+                                })
+                            );
+                        }
+
+                        item.addEventListener("mousedown", function (event) {
+                            event.preventDefault();
+                        });
+
+                        item.addEventListener("click", selectLocation);
+
+                        item.addEventListener("keydown", function (event) {
+
+                            if (
+                                event.key === "Enter" ||
+                                event.key === " "
+                            ) {
+                                event.preventDefault();
+                                selectLocation();
+                            }
+                        });
+
+                        return item;
+                    }
+
+                    input.addEventListener("input", function () {
+
+                        clearTimeout(searchTimer);
+
+                        if (activeController) {
+                            activeController.abort();
+                        }
+
+                        const query = input.value.trim();
+
+                        if (query.length < 2) {
+
+                            hideSuggestions();
+
+                            return;
+                        }
+
+                        searchTimer = setTimeout(async function () {
+
+                            activeController = new AbortController();
+
+                            suggestions.hidden = false;
+
+                            suggestions.innerHTML =
+                                '<div class="location-no-result">Searching locations...</div>';
+
+                            try {
+
+                                const url =
+                                    "https://photon.komoot.io/api/?q=" +
+                                    encodeURIComponent(query) +
+                                    "&limit=7";
+
+                                const response = await fetch(url, {
+                                    signal: activeController.signal
+                                });
+
+                                if (!response.ok) {
+                                    throw new Error("Location search failed");
+                                }
+
+                                const data = await response.json();
+
+                                const results = data.features || [];
+
+                                suggestions.replaceChildren();
+
+                                if (results.length === 0) {
+
+                                    suggestions.innerHTML =
+                                        '<div class="location-no-result">No locations found. Try another search.</div>';
+
+                                    return;
+                                }
+
+                                results.forEach(function (place) {
+
+                                    const suggestion =
+                                        createSuggestion(place);
+
+                                    if (suggestion) {
+                                        suggestions.appendChild(suggestion);
+                                    }
+                                });
+
+                                if (!suggestions.children.length) {
+
+                                    suggestions.innerHTML =
+                                        '<div class="location-no-result">No locations found.</div>';
+                                }
+
+                            } catch (error) {
+
+                                if (error.name === "AbortError") {
+                                    return;
+                                }
+
+                                console.error(
+                                    "Location search error:",
+                                    error
+                                );
+
+                                suggestions.innerHTML =
+                                    '<div class="location-no-result">Unable to search locations. Please try again.</div>';
+                            }
+
+                        }, 400);
+                    });
+
+                    input.addEventListener("keydown", function (event) {
+
+                        if (event.key === "Escape") {
+                            hideSuggestions();
+                        }
+                    });
+
+                    document.addEventListener("click", function (event) {
+
+                        if (
+                            !input.contains(event.target) &&
+                            !suggestions.contains(event.target)
+                        ) {
+                            hideSuggestions();
+                        }
+                    });
+                }
+
+                setupLocationSearch(
+                    "source",
+                    "source-suggestions"
+                );
+
+                setupLocationSearch(
+                    "destination",
+                    "destination-suggestions"
+                );
+
+            });
+        </script>
+
 
         <div class="page-footer">
             SmartTravel · Plan smarter, travel better
